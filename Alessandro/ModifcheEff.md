@@ -1,4 +1,4 @@
- 1. Parallelizzazione del calcolo delle distanze e dell'assegnazione dei cluster
+# 1. Parallelizzazione del calcolo delle distanze e dell'assegnazione dei cluster
 Codice originale:
 
 ```C
