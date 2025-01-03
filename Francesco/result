@@ -1,0 +1,175 @@
+
+	Data file: test_files/input2D.inp 
+	Points: 5000
+	Dimensions: 2
+	Number of clusters: 6
+	Maximum number of iterations: 3000
+	Minimum number of changes: 500 [10% of 5000 points]
+	Maximum centroid precision: 0.000010
+
+Memory allocation: 0.000803 seconds
+
+	Data file: test_files/input2D.inp 
+	Points: 5000
+	Dimensions: 2
+	Number of clusters: 6
+	Maximum number of iterations: 3000
+	Minimum number of changes: 500 [10% of 5000 points]
+	Maximum centroid precision: 0.000010
+
+Memory allocation: 0.000817 seconds
+
+	Data file: test_files/input2D.inp 
+	Points: 5000
+	Dimensions: 2
+	Number of clusters: 6
+	Maximum number of iterations: 3000
+	Minimum number of changes: 500 [10% of 5000 points]
+	Maximum centroid precision: 0.000010
+
+Memory allocation: 0.000808 seconds
+
+	Data file: test_files/input2D.inp 
+	Points: 5000
+	Dimensions: 2
+	Number of clusters: 6
+	Maximum number of iterations: 3000
+	Minimum number of changes: 500 [10% of 5000 points]
+	Maximum centroid precision: 0.000010
+
+Memory allocation: 0.000892 seconds
+
+	Data file: test_files/input2D.inp 
+	Points: 5000
+	Dimensions: 2
+	Number of clusters: 6
+	Maximum number of iterations: 3000
+	Minimum number of changes: 500 [10% of 5000 points]
+	Maximum centroid precision: 0.000010
+
+Memory allocation: 0.001096 seconds
+
+	Data file: test_files/input2D.inp 
+	Points: 5000
+	Dimensions: 2
+	Number of clusters: 6
+	Maximum number of iterations: 3000
+	Minimum number of changes: 500 [10% of 5000 points]
+	Maximum centroid precision: 0.000010
+
+Memory allocation: 0.001233 seconds
+
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000006
+
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000507
+
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000261
+
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000508
+
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000388
+
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000495
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000001
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000063
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000003
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000066
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000066
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000005
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000001
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000064
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000070
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000065
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000003
+ 
+if (rank == 0) { for (i = 0; i < K; i++) { for (j = 0; j < samples; j++) { glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i]; } } int position = 0; memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float))); MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size, &position, MPI_COMM_WORLD); MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position, MPI_COMM_WORLD); } MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD); if (rank == 0) { changes = glob_changes; free(packet); } else { int position = 0; MPI_Unpack(packet, packet_size, &position, centroids, K * samples, MPI_FLOAT, MPI_COMM_WORLD); MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT, MPI_COMM_WORLD); free(packet); } time : 0.000004
+ 
+MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap, point_distribution, offset, MPI_INT, (comm_size + 1) % comm_size, MPI_COMM_WORLD) time : 0.000070
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 147961.625000
+[2] Cluster changes: 665	Max. centroid distance: 148709.906250
+[3] Cluster changes: 380	Max. centroid distance: 150843.437500
+3 r 0.001079
+
+
+Termination condition:
+Minimum number of changes reached: 380 [500]
+
+Memory deallocation: 0.000003 seconds
+ 
+MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap, point_distribution, offset, MPI_INT, (comm_size + 1) % comm_size, MPI_COMM_WORLD) time : 0.000095
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 127486.156250
+[2] Cluster changes: 665	Max. centroid distance: 130471.921875
+[3] Cluster changes: 380	Max. centroid distance: 132353.875000
+ 
+MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap, point_distribution, offset, MPI_INT, (comm_size + 1) % comm_size, MPI_COMM_WORLD) time : 0.000099
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 131710.171875
+[2] Cluster changes: 665	Max. centroid distance: 138000.546875
+[3] Cluster changes: 380	Max. centroid distance: 140890.984375
+4 r 0.001026
+
+
+Termination condition:
+Minimum number of changes reached: 380 [500]
+
+Memory deallocation: 0.000008 seconds
+2 r 0.000818
+
+
+Termination condition:
+Minimum number of changes reached: 380 [500]
+
+Memory deallocation: 0.000003 seconds
+ 
+MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap, point_distribution, offset, MPI_INT, (comm_size + 1) % comm_size, MPI_COMM_WORLD) time : 0.000104
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 143536.453125
+[2] Cluster changes: 665	Max. centroid distance: 141252.781250
+[3] Cluster changes: 380	Max. centroid distance: 142533.765625
+0 r 0.000660
+
+Computation: 0.000660 seconds
+
+Termination condition:
+Minimum number of changes reached: 380 [500]
+
+Memory deallocation: 0.000015 seconds
+ 
+MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap, point_distribution, offset, MPI_INT, (comm_size + 1) % comm_size, MPI_COMM_WORLD) time : 0.000103
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 140766.156250
+[2] Cluster changes: 665	Max. centroid distance: 136695.015625
+[3] Cluster changes: 380	Max. centroid distance: 127880.304688
+5 r 0.001109
+
+
+Termination condition:
+Minimum number of changes reached: 380 [500]
+
+Memory deallocation: 0.000003 seconds
+ 
+MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap, point_distribution, offset, MPI_INT, (comm_size + 1) % comm_size, MPI_COMM_WORLD) time : 0.000144
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 153028.375000
+[2] Cluster changes: 665	Max. centroid distance: 160236.125000
+[3] Cluster changes: 380	Max. centroid distance: 160908.765625
+1 r 0.001128
+
+
+Termination condition:
+Minimum number of changes reached: 380 [500]
+
+Memory deallocation: 0.000876 seconds
