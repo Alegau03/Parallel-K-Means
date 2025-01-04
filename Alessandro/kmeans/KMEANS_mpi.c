@@ -478,11 +478,16 @@ int main(int argc, char *argv[]) {
 
   // Fine calcolo
   end = MPI_Wtime();
+  float comp_time = end - start;
+  MPI_Reduce(&comp_time, MPI_IN_PLACE, 1, MPI_FLOAT, MPI_MAX, 0,
+             MPI_COMM_WORLD);
+  if (rank == 0) {
+    printf("\nComputation: %f seconds", comp_time);
+    fflush(stdout);
+  }
   if (rank == 0) {
     // Stampa log
     printf("%s", outputMsg);
-    printf("\nComputation: %f seconds", end - start);
-
     // Cause di terminazione
     if (globalChanges <= minChanges)
       printf("\n\nTermination condition:\nMinimum number of changes reached: "
