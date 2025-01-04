@@ -312,25 +312,24 @@ int main(int argc, char *argv[]) {
     it++;
     changes = 0;
     double start_tmp = omp_get_wtime();
-#pragma omp parallel for collapse(2) reduction(+ : changes) schedule(static)
-    BLOCKTIME(
-        start_tmp, for (int i = 0; i < lines; i++) {
-          class = 1;
-          float minDist = FLT_MAX;
-
-          for (int j = 0; j < K; j++) {
-            float dist = euclideanDistance(&data[i * samples],
-                                           &centroids[j * samples], samples);
-            if (dist < minDist) {
-              minDist = dist;
-              class = j + 1;
-            }
-          }
-          if (classMap[i] != class) {
-            changes++;
-          }
-          classMap[i] = class;
-        })
+#pragma omp parallel for collapse(2) reduction(+ : changes)                    \
+    schedule(static) private(class)
+    for (int i = 0; i < lines; i++) {
+      class = 1;
+      float minDist = FLT_MAX;
+      for (int j = 0; j < K; j++) {
+        float dist = euclideanDistance(&data[i * samples],
+                                       &centroids[j * samples], samples);
+        if (dist < minDist) {
+          minDist = dist;
+          class = j + 1;
+        }
+      }
+      if (classMap[i] != class) {
+        changes++;
+      }
+      classMap[i] = class;
+    }
     zeroIntArray(pointsPerClass, K);
     zeroFloatMatriz(auxCentroids, K, samples);
 

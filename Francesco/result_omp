@@ -7,23 +7,13 @@
 	Minimum number of changes: 500 [10% of 5000 points]
 	Maximum centroid precision: 0.000010
 
-Memory allocation: 0.001633 seconds
+Memory allocation: 0.001616 seconds
+[1] Cluster changes: 30000	Max. centroid distance: 1039.319489
+[2] Cluster changes: 30000	Max. centroid distance: 0.000000
 
-for (int i = 0; i < lines; i++) { class = 1; float minDist = FLT_MAX; for (int j = 0; j < K; j++) { float dist = euclideanDistance(&data[i * samples], &centroids[j * samples], samples); if (dist < minDist) { minDist = dist; class = j + 1; } } if (classMap[i] != class) { changes++; } classMap[i] = class; } time : 0.000425
- [1] Cluster changes: 30000	Max. centroid distance: 1039.319489
-
-for (int i = 0; i < lines; i++) { class = 1; float minDist = FLT_MAX; for (int j = 0; j < K; j++) { float dist = euclideanDistance(&data[i * samples], &centroids[j * samples], samples); if (dist < minDist) { minDist = dist; class = j + 1; } } if (classMap[i] != class) { changes++; } classMap[i] = class; } time : 0.000308
- [2] Cluster changes: 29999	Max. centroid distance: 743.721050
-
-for (int i = 0; i < lines; i++) { class = 1; float minDist = FLT_MAX; for (int j = 0; j < K; j++) { float dist = euclideanDistance(&data[i * samples], &centroids[j * samples], samples); if (dist < minDist) { minDist = dist; class = j + 1; } } if (classMap[i] != class) { changes++; } classMap[i] = class; } time : 0.000189
- [3] Cluster changes: 29998	Max. centroid distance: 743.721050
-
-for (int i = 0; i < lines; i++) { class = 1; float minDist = FLT_MAX; for (int j = 0; j < K; j++) { float dist = euclideanDistance(&data[i * samples], &centroids[j * samples], samples); if (dist < minDist) { minDist = dist; class = j + 1; } } if (classMap[i] != class) { changes++; } classMap[i] = class; } time : 0.000179
- [4] Cluster changes: 30000	Max. centroid distance: 0.000000
-
-Computation: 0.008860 seconds
+Computation: 0.004571 seconds
 
 Termination condition:
 Centroid update precision reached: 1.17549e-38 [1e-05]
 
-Memory deallocation: 0.000615 seconds
+Memory deallocation: 0.000790 seconds
