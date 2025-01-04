@@ -4998,3 +4998,10 @@
 4
 3
 6
+
+[1] Changes: 5000	MaxDist: 616.680725
+[2] Changes: 665	MaxDist: 144.019882
+[3] Changes: 380	MaxDist: 88.172325
+
+Termination condition:
+Minimum number of changes reached: 380 [500]

@@ -7,12 +7,12 @@
 	Minimum changes: 500 [10.00% of 5000 points]
 	Max centroid precision: 0.000100
 
-Initialization: 0.001260 seconds
+Initialization: 0.000653 seconds
 
+Computation: 0.000296 seconds
 [1] Changes: 5000	MaxDist: 616.680725
 [2] Changes: 665	MaxDist: 144.019882
 [3] Changes: 380	MaxDist: 88.172325
-Computation: 0.000299 seconds
 
 Termination condition:
 Minimum number of changes reached: 380 [500]
