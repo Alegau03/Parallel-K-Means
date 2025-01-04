@@ -26,6 +26,15 @@
 #define MAXLINE 2000
 #define MAXCAD 200
 
+#define CALLTIME(start, call)                                                  \
+  call;                                                                        \
+  double end_tmp = omp_get_wtime();                                            \
+  printf("\n%s time : %lf\n ", #call, (end_tmp - start));
+
+#define BLOCKTIME(start, block)                                                \
+  block double end_tmp = omp_get_wtime();                                      \
+  printf("\n%s time : %lf\n ", #block, (end_tmp - start));
+
 // Macros
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -157,7 +166,6 @@ float euclideanDistance(float *point, float *center, int samples) {
   for (int i = 0; i < samples; i++) {
     dist += (point[i] - center[i]) * (point[i] - center[i]);
   }
-  dist = sqrt(dist);
   return (dist);
 }
 
@@ -299,31 +307,30 @@ int main(int argc, char *argv[]) {
    * START HERE: DO NOT CHANGE THE CODE ABOVE THIS POINT
    *
    */
-  int thread_num = omp_get_thread_num();
   int *localClassMap = calloc(lines, sizeof(int));
   do {
     it++;
     changes = 0;
-
+    double start_tmp = omp_get_wtime();
 #pragma omp parallel for collapse(2) reduction(+ : changes) schedule(static)
-    for (int i = 0; i < lines; i++) {
-      class = 1;
-      float minDist = FLT_MAX;
+    BLOCKTIME(
+        start_tmp, for (int i = 0; i < lines; i++) {
+          class = 1;
+          float minDist = FLT_MAX;
 
-      for (int j = 0; j < K; j++) {
-        float dist = euclideanDistance(&data[i * samples],
-                                       &centroids[j * samples], samples);
-        if (dist < minDist) {
-          minDist = dist;
-          class = j + 1;
-        }
-      }
-      if (classMap[i] != class) {
-        changes++;
-      }
-      classMap[i] = class;
-    }
-
+          for (int j = 0; j < K; j++) {
+            float dist = euclideanDistance(&data[i * samples],
+                                           &centroids[j * samples], samples);
+            if (dist < minDist) {
+              minDist = dist;
+              class = j + 1;
+            }
+          }
+          if (classMap[i] != class) {
+            changes++;
+          }
+          classMap[i] = class;
+        })
     zeroIntArray(pointsPerClass, K);
     zeroFloatMatriz(auxCentroids, K, samples);
 
@@ -333,11 +340,11 @@ int main(int argc, char *argv[]) {
 #pragma omp atomic
       pointsPerClass[class]++;
       for (int j = 0; j < samples; j++) {
+        double start_tmp = omp_get_wtime();
 #pragma omp atomic
         auxCentroids[class * samples + j] += data[i * samples + j];
       }
     }
-
 #pragma omp parallel for collapse(2) schedule(static)
     for (int i = 0; i < K; i++) {
       for (int j = 0; j < samples; j++) {
@@ -358,10 +365,10 @@ int main(int argc, char *argv[]) {
     memcpy(centroids, auxCentroids, (K * samples * sizeof(float)));
 
     printf("[%d] Cluster changes: %d\tMax. centroid distance: %f\n", it,
-           changes, maxDist);
+           changes, sqrt(maxDist));
 
   } while ((changes > minChanges) && (it < maxIterations) &&
-           (maxDist > maxThreshold));
+           (sqrt(maxDist) > maxThreshold));
 
   /*
    *

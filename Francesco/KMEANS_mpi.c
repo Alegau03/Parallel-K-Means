@@ -41,14 +41,16 @@
   }
 #define CALLTIME(call)                                                         \
   {                                                                            \
-    float start = MPI_Wtime();                                                 \
+    double start = MPI_Wtime();                                                \
     call;                                                                      \
-    printf("\n%s time : %f\n ", #call, MPI_Wtime() - start);                   \
+    double end = MPI_Wtime();                                                  \
+    printf("\n%s time : %lf\n ", #call, end - start);                          \
   }
 #define BLOCKTIME(block)                                                       \
   {                                                                            \
-    float start = MPI_Wtime();                                                 \
-    block printf("\n%s time : %f\n ", #block, MPI_Wtime() - start);            \
+    double start = MPI_Wtime();                                                \
+    block double end = MPI_Wtime();                                            \
+    printf("\n%s time : %lf\n ", #block, end - start);                         \
   }
 
 // Macros
@@ -411,6 +413,7 @@ int main(int argc, char *argv[]) {
 
     MPI_Reduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM,
                0, MPI_COMM_WORLD);
+
     MPI_Reduce(pointsPerClass, glob_pointsPerClass, K, MPI_INT, MPI_SUM, 0,
                MPI_COMM_WORLD);
     if (rank == 0) {
@@ -442,9 +445,7 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < K; i++) {
       distCentroids[i] = euclideanDistance(&centroids[i * samples],
                                            &auxCentroids[i * samples], samples);
-      if (distCentroids[i] > (maxDist)) {
-        maxDist = distCentroids[i];
-      }
+      maxDist = MAX(maxDist, distCentroids[i]);
     }
     sprintf(line, "\n[%d] Cluster changes: %d\tMax. centroid distance: %f", it,
             changes, maxDist);
@@ -453,9 +454,9 @@ int main(int argc, char *argv[]) {
   } while ((changes > minChanges) && (it < maxIterations) &&
            (maxDist > maxThreshold));
 
-  CALLTIME(MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
-                       point_distribution, offset, MPI_INT,
-                       (comm_size + 1) % comm_size, MPI_COMM_WORLD));
+  MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
+              point_distribution, offset, MPI_INT, (comm_size + 1) % comm_size,
+              MPI_COMM_WORLD);
   /*
    *
    * STOP HERE: DO NOT CHANGE THE CODE BELOW THIS POINT
@@ -468,7 +469,6 @@ int main(int argc, char *argv[]) {
   // END CLOCK*****************************************
   end = MPI_Wtime();
   float comp_time = end - start;
-  printf("\n%d r %f\n", rank, comp_time);
   MPI_Reduce(&comp_time, MPI_IN_PLACE, 1, MPI_FLOAT, MPI_MAX, 0,
              MPI_COMM_WORLD);
   if (rank == 0) {
