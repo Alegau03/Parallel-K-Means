@@ -226,16 +226,16 @@ Queste modifiche, specialmente saltare la *sqrtf* durante l’assegnamento, perm
 I tempi di MPi sono espressi con 4 processi 
 ## input2D.inp
 | **Fase**               | **Versione Seriale**       | **Versione MPI**               | **Versione OpenMP**                |
-|------------------------|----------------------------|--------------------------------|-------------------------------------|
-| **Initialization**     | 0.001719 s                | 0.002057 s                     | 0.002698 s                          |
-| **Computation**        | 0.002444 s                | 0.000357 s                     | 0.005989 s                          |
-| **Somma (Init+Comp)**  | 0.004163 s                | 0.002414 s                     | 0.008687 s                          |
-| **Memory deallocation**| 0.000929 s                | Calcolo tempo attualmente errato | Calcolo tempo attualmente errato   |
+|------------------------|----------------------------|--------------------------------|------------------------------------|
+| **Initialization**     | 0.001719 s (1.0x)         | 0.002057 s (1.20x)             | 0.002698 s (1.57x)                 |
+| **Computation**        | 0.002444 s (6.85x)        | 0.000357 s (1.0x)              | 0.005989 s (16.78x)                |
+| **Somma (Init+Comp)**  | 0.004163 s (1.72x)        | 0.002414 s (1.0x)              | 0.008687 s (3.60x)                 |
+| **Memory deallocation**| 0.000929 s                | N/A                            | N/A                                 |
 
 ## input100D.inp
-| **Fase**                     | **Versione Seriale** | **Versione MPI**  | **Versione OpenMP** |
-|-----------------------------:|:---------------------:|:-----------------:|:-------------------:|
-| **Memory allocation**        | 0.247719 s           | 0.257554 s        | 0.240313 s          |
-| **Computation**              | 0.315217 s           | 0.130024 s        | 0.145688 s          |
-| **Somma (Alloc+Comp)**       | 0.562936 s           | 0.387578 s        | 0.386001 s          |
-| **Memory deallocation**      | 0.004843 s           | N/A               | N/A                 |
+| **Fase**                     | **Versione Seriale**         | **Versione MPI**           | **Versione OpenMP**         |
+|-----------------------------:|:---------------------------:|:--------------------------:|:---------------------------:|
+| **Memory allocation**        | 0.033667 s (1.31x)          | 0.025747 s (1.0x)          | 0.039986 s (1.55x)          |
+| **Computation**              | 0.046523 s (2.72x)          | 0.017071 s (1.0x)          | 0.022172 s (1.30x)          |
+| **Somma (Alloc+Comp)**       | 0.080193 s (1.87x)          | 0.042818 s (1.0x)          | 0.062158 s (1.45x)          |
+| **Memory deallocation**      | 0.000678 s                  | N/A                        | N/A                         |
