@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Compilazione dei programmi
+echo "##################################################"
 echo "Compilazione dei programmi..."
 mpicc -o kmeans_mpi KMEANS_mpi.c -lm 
 gcc-14 -fopenmp -o kmeans_openmp KMEANS_omp.c -lm
@@ -50,5 +51,28 @@ run_program() {
 run_program "mpirun -np 4 ./kmeans_mpi" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_MPI" "$RESULT_MPI" "$TIMING_MPI"
 run_program "./kmeans_openmp" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_OMP" "$RESULT_OMP" "$TIMING_OMP"
 run_program "./kmeans" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_SEQ" "$RESULT_SEQ" "$TIMING_SEQ"
-
+echo "##################################################"
 echo "Tutte le esecuzioni sono state completate!"
+cd test_files
+echo "Differenze outputs"
+echo "Differenze tra output sequenziale e MPI"
+diff output2d_seq.txt output2d_mpi.txt
+echo "Differenze tra output sequenziale e OpenMP"
+diff output2d_seq.txt output2d_omp.txt
+echo "Differenze tra output MPI e OpenMP"
+diff output2d_mpi.txt output2d_omp.txt
+echo "##################################################"
+echo "Visione gnuplot"
+
+paste input2D.inp output2d_seq.txt > graph2d_seq.txt
+paste input2D.inp output2d_mpi.txt > graph2d_mpi.txt
+paste input2D.inp output2d_omp.txt > graph2d_omp.txt
+gnuplot -p plot_kmeans_2d_seq.gp
+gnuplot -p plot_kmeans_2d_mpi.gp
+gnuplot -p plot_kmeans_2d_omp.gp
+echo "Fatto"
+echo "##################################################"
+echo "Tempi"
+cd ..
+python tempi.py
+echo "##################################################"
