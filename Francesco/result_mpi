@@ -7,7 +7,7 @@
 	Minimum number of changes: 500 [10% of 5000 points]
 	Maximum centroid precision: 0.000010
 
-Memory allocation: 0.000636 seconds
+Memory allocation: 0.001756 seconds
 
 	Data file: test_files/input2D.inp 
 	Points: 5000
@@ -17,7 +17,7 @@ Memory allocation: 0.000636 seconds
 	Minimum number of changes: 500 [10% of 5000 points]
 	Maximum centroid precision: 0.000010
 
-Memory allocation: 0.000632 seconds
+Memory allocation: 0.001770 seconds
 
 	Data file: test_files/input2D.inp 
 	Points: 5000
@@ -27,7 +27,13 @@ Memory allocation: 0.000632 seconds
 	Minimum number of changes: 500 [10% of 5000 points]
 	Maximum centroid precision: 0.000010
 
-Memory allocation: 0.000641 seconds
+Memory allocation: 0.001771 seconds
+
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000016
+
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000022
+
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000021
 
 	Data file: test_files/input2D.inp 
 	Points: 5000
@@ -37,79 +43,65 @@ Memory allocation: 0.000641 seconds
 	Minimum number of changes: 500 [10% of 5000 points]
 	Maximum centroid precision: 0.000010
 
-Memory allocation: 0.000655 seconds
+Memory allocation: 0.002046 seconds
 
-	Data file: test_files/input2D.inp 
-	Points: 5000
-	Dimensions: 2
-	Number of clusters: 6
-	Maximum number of iterations: 3000
-	Minimum number of changes: 500 [10% of 5000 points]
-	Maximum centroid precision: 0.000010
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000011
+ 
+MPI_Waitall(2, requests, MPI_STATUSES_IGNORE); time : 0.000356
+ 
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000001
+ 
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000002
+ 
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000001
+ 
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000002
+ 
+MPI_Waitall(2, requests, MPI_STATUSES_IGNORE); time : 0.000091
+ 
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000001
+ 
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000000
+ 
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000001
+ 
+MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]); time : 0.000001
+ 
+MPI_Waitall(2, requests, MPI_STATUSES_IGNORE); time : 0.000082
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 219474.607552
+[2] Cluster changes: 665	Max. centroid distance: 219740.922070
+[3] Cluster changes: 380	Max. centroid distance: 221417.376879
+Computation: 0.000848 seconds
 
-Memory allocation: 0.004470 seconds
+Termination condition:
+Minimum number of changes reached: 380 [500]
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 207868.955643
+[2] Cluster changes: 665	Max. centroid distance: 219420.282891
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 216221.696007
+[2] Cluster changes: 665	Max. centroid distance: 207792.260568
+ 
+[1] Cluster changes: 5000	Max. centroid distance: 200740.802748
+[2] Cluster changes: 665	Max. centroid distance: 195830.546177
 
-	Data file: test_files/input2D.inp 
-	Points: 5000
-	Dimensions: 2
-	Number of clusters: 6
-	Maximum number of iterations: 3000
-	Minimum number of changes: 500 [10% of 5000 points]
-	Maximum centroid precision: 0.000010
-
-Memory allocation: 0.001047 seconds
-
-[1] Cluster changes: 5000	Max. centroid distance: 147961.625000
-[2] Cluster changes: 665	Max. centroid distance: 148709.906250
-[3] Cluster changes: 380	Max. centroid distance: 150843.437500
+Memory deallocation: 0.000008 seconds
+[3] Cluster changes: 380	Max. centroid distance: 203444.967301
 
 Termination condition:
 Minimum number of changes reached: 380 [500]
 
-Memory deallocation: 0.000003 seconds
+Memory deallocation: 0.000004 seconds
+[3] Cluster changes: 380	Max. centroid distance: 222888.956604
 
-[1] Cluster changes: 5000	Max. centroid distance: 140766.156250
-[2] Cluster changes: 665	Max. centroid distance: 136695.015625
-[3] Cluster changes: 380	Max. centroid distance: 127880.304688
+Termination condition:
+[3] Cluster changes: 380	Max. centroid distance: 208928.409251
 
 Termination condition:
 Minimum number of changes reached: 380 [500]
 
-Memory deallocation: 0.000005 seconds
-
-[1] Cluster changes: 5000	Max. centroid distance: 127486.156250
-[2] Cluster changes: 665	Max. centroid distance: 130471.921875
-[3] Cluster changes: 380	Max. centroid distance: 132353.875000
-
-Termination condition:
+Memory deallocation: 0.000004 seconds
 Minimum number of changes reached: 380 [500]
 
-Memory deallocation: 0.000003 seconds
-
-[1] Cluster changes: 5000	Max. centroid distance: 143536.453125
-[2] Cluster changes: 665	Max. centroid distance: 141252.781250
-[3] Cluster changes: 380	Max. centroid distance: 142533.765625
-Computation: 0.004899 seconds
-
-Termination condition:
-Minimum number of changes reached: 380 [500]
-
-Memory deallocation: 0.000006 seconds
-
-[1] Cluster changes: 5000	Max. centroid distance: 131710.171875
-[2] Cluster changes: 665	Max. centroid distance: 138000.546875
-[3] Cluster changes: 380	Max. centroid distance: 140890.984375
-
-Termination condition:
-Minimum number of changes reached: 380 [500]
-
-Memory deallocation: 0.000015 seconds
-
-[1] Cluster changes: 5000	Max. centroid distance: 153028.375000
-[2] Cluster changes: 665	Max. centroid distance: 160236.125000
-[3] Cluster changes: 380	Max. centroid distance: 160908.765625
-
-Termination condition:
-Minimum number of changes reached: 380 [500]
-
-Memory deallocation: 0.000323 seconds
+Memory deallocation: 0.000303 seconds

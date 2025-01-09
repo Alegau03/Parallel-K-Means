@@ -1,5 +1,5 @@
 mpicc KMEANS_mpi.c -o kmeans_mpi 
-mpirun  -n 6   ./kmeans_mpi test_files/input2D.inp 6 3000 10 0.00001 test_files/output2D  > result_mpi
+mpirun  -n 4   ./kmeans_mpi test_files/input2D.inp 6 3000 10 0.00001 test_files/output2D  > result_mpi
 #./kmeans_omp test_files/input2D.inp 6 3000 10 0.00001 test_files/output2D_omp > result_mpi
 
 gcc KMEANS.c -o kmeans
@@ -17,11 +17,3 @@ input_file1="result_mpi"
 grep "Computation" "$input_file1" | cut -d':' -f2  >> "$output_file1"
 
 
-counter=1
-while [ $counter -le 100 ]
-do 
-    mpirun  -n 6   ./kmeans_mpi test_files/input2D.inp 6 3000 10 0.00001 test_files/output2D  > result_mpi
-    cd test_files
-    grep "Computation" "$input_file1" | cut -d':' -f2  >> "$output_file1"
-    ((counter ++))
-done 
