@@ -193,7 +193,7 @@ float euclideanDistance(float *point, float *center, int samples) {
   for (int i = 0; i < samples; i++) {
     dist += (point[i] - center[i]) * (point[i] - center[i]);
   }
-  return sqrt(dist);
+  return dist;
 }
 
 /*
@@ -328,7 +328,7 @@ int main(int argc, char *argv[]) {
 
   // pointPerClass: number of points classified in each class
   // auxCentroids: mean of the points in each class
-  int *pointsPerClass = (int *)malloc(K * sizeof(int));
+  int *pointsPerClass = (int *)malloc((K + 1) * sizeof(int));
   float *auxCentroids = (float *)malloc(K * samples * sizeof(float));
   float *distCentroids = (float *)malloc(K * sizeof(float));
   if (pointsPerClass == NULL || auxCentroids == NULL || distCentroids == NULL) {
@@ -343,6 +343,14 @@ int main(int argc, char *argv[]) {
    */
 
   int comm_size, *point_distribution, *offset, my_iteration, my_offset;
+  float *glob_auxCentroids;
+  int *glob_pointsPerClass;
+
+  if (rank == 0) {
+    glob_pointsPerClass = calloc(K + 1, sizeof(int));
+    glob_auxCentroids = calloc(K * samples, sizeof(float));
+  }
+
   int tmp_lines = lines;
 
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
@@ -350,7 +358,6 @@ int main(int argc, char *argv[]) {
   if (rank == (comm_size + 1) % comm_size) {
     point_distribution = calloc(comm_size, sizeof(int));
     offset = calloc(comm_size, sizeof(int));
-
     DISTRIBUTION(comm_size, tmp_lines, point_distribution);
     OFFSET(offset, point_distribution, comm_size);
     my_offset = offset[rank];
@@ -365,10 +372,9 @@ int main(int argc, char *argv[]) {
   }
   int *localClassMap = calloc(my_iteration, sizeof(int));
   int glob_changes;
-  float *glob_auxCentroids;
-  int *glob_pointsPerClass;
   int packet_size = (K * samples * sizeof(float)) + sizeof(int);
   void *packet;
+  MPI_Request requests[3];
 
   do {
     it++;
@@ -393,9 +399,7 @@ int main(int argc, char *argv[]) {
       }
       localClassMap[it_2++] = class;
     }
-    MPI_Reduce(&changes, &glob_changes, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-
-    zeroIntArray(pointsPerClass, K);
+    zeroIntArray(pointsPerClass, K + 1);
     zeroFloatMatriz(auxCentroids, K, samples);
     for (int i = my_offset, it_2 = 0; i < my_offset + my_iteration; i++) {
       class = localClassMap[it_2++];
@@ -404,37 +408,42 @@ int main(int argc, char *argv[]) {
         auxCentroids[(class - 1) * samples + j] += data[i * samples + j];
       }
     }
-
     if (rank == 0) {
-      glob_auxCentroids = calloc(K * samples, sizeof(float));
-      glob_pointsPerClass = calloc(K, sizeof(int));
+      zeroFloatMatriz(glob_auxCentroids, K, samples);
+      zeroIntArray(glob_pointsPerClass, K + 1);
     }
+
+    pointsPerClass[K] = changes;
+
     packet = malloc(packet_size);
+    MPI_Ireduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,
+                MPI_SUM, 0, MPI_COMM_WORLD, &requests[0]);
 
-    MPI_Reduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT, MPI_SUM,
-               0, MPI_COMM_WORLD);
-
-    MPI_Reduce(pointsPerClass, glob_pointsPerClass, K, MPI_INT, MPI_SUM, 0,
-               MPI_COMM_WORLD);
+    MPI_Ireduce(pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM, 0,
+                MPI_COMM_WORLD, &requests[1]);
     if (rank == 0) {
+      CALLTIME(MPI_Waitall(2, requests, MPI_STATUSES_IGNORE);)
       for (i = 0; i < K; i++) {
         for (j = 0; j < samples; j++) {
           glob_auxCentroids[i * samples + j] /= glob_pointsPerClass[i];
         }
       }
       int position = 0;
+      glob_changes = glob_pointsPerClass[K];
       memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float)));
       MPI_Pack(centroids, K * samples, MPI_FLOAT, packet, packet_size,
                &position, MPI_COMM_WORLD);
       MPI_Pack(&glob_changes, 1, MPI_INT, packet, packet_size, &position,
                MPI_COMM_WORLD);
     }
-    MPI_Bcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD);
+    MPI_Ibcast(packet, packet_size, MPI_PACKED, 0, MPI_COMM_WORLD,
+               &requests[2]);
     if (rank == 0) {
       changes = glob_changes;
       free(packet);
     } else {
       int position = 0;
+      MPI_Wait(&requests[2], MPI_STATUSES_IGNORE);
       MPI_Unpack(packet, packet_size, &position, centroids, K * samples,
                  MPI_FLOAT, MPI_COMM_WORLD);
       MPI_Unpack(packet, packet_size, &position, &changes, 1, MPI_INT,
@@ -448,11 +457,10 @@ int main(int argc, char *argv[]) {
       maxDist = MAX(maxDist, distCentroids[i]);
     }
     sprintf(line, "\n[%d] Cluster changes: %d\tMax. centroid distance: %f", it,
-            changes, maxDist);
+            changes, sqrt(maxDist));
     outputMsg = strcat(outputMsg, line);
-
   } while ((changes > minChanges) && (it < maxIterations) &&
-           (maxDist > maxThreshold));
+           (sqrt(maxDist) > maxThreshold));
 
   MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
               point_distribution, offset, MPI_INT, (comm_size + 1) % comm_size,
