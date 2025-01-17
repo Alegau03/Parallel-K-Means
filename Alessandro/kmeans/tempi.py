@@ -20,7 +20,7 @@ if __name__ == "__main__":
     file_seq = "test_files/timing_seq.txt"
     file_omp = "test_files/timing_omp.txt"
     file_mpi = "test_files/timing_mpi.txt"
-    
+    file_mpi_omp= "test_files/timing_mpi_omp.txt"
     # Calcola la media per ogni file
-    for file_name in [file_seq, file_omp, file_mpi]:
+    for file_name in [file_seq, file_omp, file_mpi, file_mpi_omp]:
         calcola_media(file_name)
