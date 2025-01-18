@@ -6,11 +6,13 @@ Starting computation...
 Starting computation...
 
 Starting computation...
-[1] Cluster changes: 5000	Max. centroid distance: 616.680725
-Iteration 1 time: 0.000477 seconds
-[2] Cluster changes: 665	Max. centroid distance: 144.019882
-Iteration 2 time: 0.000274 seconds
-[3] Cluster changes: 380	Max. centroid distance: 88.172325
-Iteration 3 time: 0.000461 seconds
+[1] Cluster changes: 10000	Max. centroid distance: 508.249542
+Iteration 1 time: 0.004911 seconds
+[2] Cluster changes: 1425	Max. centroid distance: 29.761524
+Iteration 2 time: 0.002898 seconds
+[3] Cluster changes: 1013	Max. centroid distance: 18.109161
+Iteration 3 time: 0.002988 seconds
+[4] Cluster changes: 750	Max. centroid distance: 12.094872
+Iteration 4 time: 0.002857 seconds
 
-Computation: 0.004189 seconds
+Computation: 0.039641 seconds
