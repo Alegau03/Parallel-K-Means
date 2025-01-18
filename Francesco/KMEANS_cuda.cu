@@ -16,7 +16,6 @@
  */
 #include <cstdio>
 #include <cuda.h>
-#include <cuda_runtime_api.h>
 #include <float.h>
 #include <math.h>
 #include <omp.h>
@@ -25,6 +24,9 @@
 #include <string.h>
 #include <time.h>
 
+// NOTE : compile with flag -Xptxas -dlcm=cg to disable L1 cache
+#define NUM_WARP_SCHEDULERS 4
+#define REG_PER_THREAD 32 // nvcc -Xcompiler -fopenmp -Xptxas -v  KMEANS_cuda.cu
 #define MAXLINE 2000
 #define MAXCAD 200
 
@@ -57,10 +59,12 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
                                     float *d_auxCentroids, int *d_changes,
                                     float *d_centroids, float *d_data,
                                     int *d_classMap);
+void OptimalBlockGridDims(int numberOfThreads, int sharedPerThread,
+                          int *optBlockDim, int *optGridDim);
 /*
- Function showFileError: It displays the corresponding error during file
- reading.
- */
+Function showFileError: It displays the corresponding error during file
+reading.
+*/
 void showFileError(int error, char *filename) {
   printf("Error\n");
   switch (error) {
@@ -336,8 +340,9 @@ int main(int argc, char *argv[]) {
   float *d_centroids;
   int *d_classMap;
   float *d_data;
-  cudaOccupancyMaxPotentialBlockSize(&gridSize, &blockSize,
-                                     GPU_ClassAssignment);
+
+  OptimalBlockGridDims(lines, 0, &blockSize, &gridSize);
+
   cudaMalloc((void **)&d_centroids, K * samples * sizeof(float));
   cudaMalloc((void **)&d_data, lines * samples * sizeof(float));
   cudaMalloc((void **)&d_classMap, lines * sizeof(int));
@@ -445,6 +450,12 @@ int main(int argc, char *argv[]) {
   free(distCentroids);
   free(pointsPerClass);
   free(auxCentroids);
+  cudaFree(d_auxCentroids);
+  cudaFree(d_data);
+  cudaFree(d_centroids);
+  cudaFree(d_changes);
+  cudaFree(d_pointsPerClass);
+  cudaFree(d_classMap);
 
   // END CLOCK*****************************************
   end = omp_get_wtime();
@@ -452,6 +463,23 @@ int main(int argc, char *argv[]) {
   fflush(stdout);
   //***************************************************/
   return 0;
+}
+
+void OptimalBlockGridDims(int numberOfThreads, int sharedPerThread,
+                          int *optBlockDim, int *optGridDim) {
+  cudaDeviceProp p;
+  cudaGetDeviceProperties(&p, 0);
+
+  int maxRegs = p.regsPerBlock;
+  int maxThreadsPerSM = p.maxThreadsPerMultiProcessor;
+
+  int threadsPerBlock = MAX(maxThreadsPerSM, maxRegs / REG_PER_THREAD);
+  while (numberOfThreads % threadsPerBlock != 0) {
+    threadsPerBlock--;
+  }
+  *optGridDim = numberOfThreads / threadsPerBlock;
+  *optBlockDim = threadsPerBlock;
+  return;
 }
 
 __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
