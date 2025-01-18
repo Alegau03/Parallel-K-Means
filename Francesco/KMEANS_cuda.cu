@@ -59,8 +59,8 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
                                     float *d_auxCentroids, int *d_changes,
                                     float *d_centroids, float *d_data,
                                     int *d_classMap);
-void OptimalBlockGridDims(int numberOfThreads, int sharedPerThread,
-                          int *optBlockDim, int *optGridDim);
+void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
+                          int *optGridDim);
 /*
 Function showFileError: It displays the corresponding error during file
 reading.
@@ -340,9 +340,12 @@ int main(int argc, char *argv[]) {
   float *d_centroids;
   int *d_classMap;
   float *d_data;
-
-  OptimalBlockGridDims(lines, 0, &blockSize, &gridSize);
-
+  cudaOccupancyMaxPotentialBlockSize(&gridSize, &blockSize,
+                                     GPU_ClassAssignment);
+  while (gridSize * blockSize < lines) {
+    blockSize -= 32;
+    gridSize++;
+  }
   cudaMalloc((void **)&d_centroids, K * samples * sizeof(float));
   cudaMalloc((void **)&d_data, lines * samples * sizeof(float));
   cudaMalloc((void **)&d_classMap, lines * sizeof(int));
@@ -465,20 +468,24 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void OptimalBlockGridDims(int numberOfThreads, int sharedPerThread,
-                          int *optBlockDim, int *optGridDim) {
+void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
+                          int *optGridDim) {
   cudaDeviceProp p;
   cudaGetDeviceProperties(&p, 0);
 
   int maxRegs = p.regsPerBlock;
   int maxThreadsPerSM = p.maxThreadsPerMultiProcessor;
-
-  int threadsPerBlock = MAX(maxThreadsPerSM, maxRegs / REG_PER_THREAD);
+  int SM = p.multiProcessorCount;
+  int threadsPerBlock = MIN(maxThreadsPerSM / SM, maxRegs / REG_PER_THREAD);
+  printf("%d", threadsPerBlock);
   while (numberOfThreads % threadsPerBlock != 0) {
     threadsPerBlock--;
   }
-  *optGridDim = numberOfThreads / threadsPerBlock;
+  int GridDim = numberOfThreads / threadsPerBlock;
   *optBlockDim = threadsPerBlock;
+  while ((*optBlockDim) * (GridDim) < numberOfThreads)
+    GridDim++;
+  *optGridDim = GridDim;
   return;
 }
 
@@ -486,9 +493,7 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
                                     float *d_auxCentroids, int *d_changes,
                                     float *d_centroids, float *d_data,
                                     int *d_classMap) {
-
   int global_id = threadIdx.x + blockIdx.x * blockDim.x;
-
   if (global_id >= d_lines)
     return;
   int Class = 1;
