@@ -9,7 +9,7 @@ mpicc -fopenmp -o kmeans_mpi_omp KMEANS_mpiOMP.c -lm
 gcc KMEANS.c -o kmeans
 
 # Parametri comuni
-INPUT_FILE="test_files/input100D.inp"
+INPUT_FILE="test_files/input100D2.inp"
 OUTPUT_FILE_MPI="test_files/output2d_mpi.txt"
 OUTPUT_FILE_OMP="test_files/output2d_omp.txt"
 OUTPUT_FILE_SEQ="test_files/output2d_seq.txt"

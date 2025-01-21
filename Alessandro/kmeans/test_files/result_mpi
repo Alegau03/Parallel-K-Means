@@ -1,19 +1,18 @@
 
-	Data file: test_files/input100D.inp 
-	Points: 10000
+	Data file: test_files/input100D2.inp 
+	Points: 100000
 	Dimensions: 100
 	Number of clusters: 6
 	Maximum iterations: 300
-	Minimum changes: 1000 [10.00% of 10000 points]
+	Minimum changes: 10000 [10.00% of 100000 points]
 	Max centroid precision: 0.000100
 
-Initialization: 0.024201 seconds
+Initialization: 0.248311 seconds
 
-Computation: 0.012626 seconds
-[1] Changes: 10000	MaxDist: 508.249542
-[2] Changes: 1425	MaxDist: 29.761524
-[3] Changes: 1013	MaxDist: 18.109161
-[4] Changes: 750	MaxDist: 12.094872
+Computation: 0.098981 seconds
+[1] Changes: 100000	MaxDist: 530.628540
+[2] Changes: 10609	MaxDist: 11.784917
+[3] Changes: 5825	MaxDist: 6.890403
 
 Termination condition:
-Minimum number of changes reached: 750 [1000]
+Minimum number of changes reached: 5825 [10000]
