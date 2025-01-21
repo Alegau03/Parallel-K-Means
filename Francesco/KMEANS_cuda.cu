@@ -345,14 +345,8 @@ int main(int argc, char *argv[]) {
   int *d_pointsPerClass, *d_changes, *d_classMap;
   float *d_centroids, *d_auxCentroids, *d_data;
   int pointsPerThread = 4;
-  // grid and block size for class assignment
-  while (gridSize * blockSize < lines / pointsPerThread) {
-    if (blockSize < MAX_BLOCK_DIM) {
-      blockSize += 4;
-    }
-    gridSize++;
-  }
-  printf("%d,%d", blockSize, gridSize);
+
+  OptimalBlockGridDims(ceil(lines / pointsPerThread), &blockSize, &gridSize);
   cudaMalloc((void **)&d_centroids, K * samples * sizeof(float));
   cudaMalloc((void **)&d_data, lines * samples * sizeof(float));
   cudaMalloc((void **)&d_classMap, lines * sizeof(int));
@@ -483,16 +477,19 @@ void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
 
   int maxRegs = p.regsPerBlock;
   int maxThreadsPerSM = p.maxThreadsPerMultiProcessor;
-  int SM = p.multiProcessorCount;
-  int threadsPerBlock = MIN(maxThreadsPerSM / SM, maxRegs / REG_PER_THREAD);
-  while (numberOfThreads % threadsPerBlock != 0) {
-    threadsPerBlock--;
+  int GridDim = p.multiProcessorCount;
+  int BlockDim = p.warpSize;
+  while (GridDim * BlockDim < numberOfThreads) {
+    if ((BlockDim + p.warpSize) <
+        MIN(maxThreadsPerSM, maxRegs / REG_PER_THREAD)) {
+      BlockDim += p.warpSize;
+    }
+
+    GridDim += (p.multiProcessorCount / 2);
   }
-  int GridDim = numberOfThreads / threadsPerBlock;
-  *optBlockDim = threadsPerBlock;
-  while ((*optBlockDim) * (GridDim) < numberOfThreads)
-    GridDim++;
   *optGridDim = GridDim;
+  *optBlockDim = BlockDim;
+
   return;
 }
 
@@ -504,7 +501,9 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
   int global_id = threadIdx.x + blockIdx.x * blockDim.x;
   int blocksize = blockDim.x;
   int t_id = threadIdx.x;
+  int local_changes = 0;
   int centroid_size = d_samples * d_K;
+
   if (centroid_size < blocksize) {
     if (t_id < centroid_size)
       shared_centroids[t_id] = d_centroids[t_id];
@@ -543,7 +542,7 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
     d_classMap[pointIndex] = Class;
 
     if (oldClass != Class) {
-      atomicAdd(d_changes, 1);
+      local_changes++;
     }
 
     Class -= 1;
@@ -553,6 +552,7 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
                 d_data[pointIndex * d_samples + j]);
     }
   }
+  atomicAdd(d_changes, local_changes);
 }
 
 __global__ void GPU_CentroidsUpdate(int *d_pointsPerClass,
