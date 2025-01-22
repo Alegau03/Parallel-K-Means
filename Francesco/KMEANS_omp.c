@@ -283,11 +283,8 @@ int main(int argc, char *argv[]) {
   start = omp_get_wtime();
   //**************************************************
   char *outputMsg = (char *)calloc(10000, sizeof(char));
-  char line[100];
 
-  int j;
   int class;
-  float dist, minDist;
   int it = 0;
   int changes = 0;
   float maxDist;
@@ -307,13 +304,10 @@ int main(int argc, char *argv[]) {
    * START HERE: DO NOT CHANGE THE CODE ABOVE THIS POINT
    *
    */
-  int *localClassMap = calloc(lines, sizeof(int));
   do {
     it++;
     changes = 0;
-    double start_tmp = omp_get_wtime();
-#pragma omp parallel for collapse(2) reduction(+ : changes)                    \
-    schedule(static) private(class)
+#pragma omp parallel for reduction(+ : changes) schedule(guided) private(class)
     for (int i = 0; i < lines; i++) {
       class = 1;
       float minDist = FLT_MAX;
@@ -330,21 +324,15 @@ int main(int argc, char *argv[]) {
       }
       classMap[i] = class;
     }
-    zeroIntArray(pointsPerClass, K);
     zeroFloatMatriz(auxCentroids, K, samples);
-
-#pragma omp parallel for schedule(static) private(class)
     for (int i = 0; i < lines; i++) {
       class = classMap[i] - 1;
-#pragma omp atomic
       pointsPerClass[class]++;
       for (int j = 0; j < samples; j++) {
-        double start_tmp = omp_get_wtime();
-#pragma omp atomic
         auxCentroids[class * samples + j] += data[i * samples + j];
       }
     }
-#pragma omp parallel for collapse(2) schedule(static)
+#pragma omp parallel for schedule(static)
     for (int i = 0; i < K; i++) {
       for (int j = 0; j < samples; j++) {
         if (pointsPerClass[i] > 0) {
@@ -352,9 +340,10 @@ int main(int argc, char *argv[]) {
         }
       }
     }
+    zeroIntArray(pointsPerClass, K);
 
     maxDist = FLT_MIN;
-#pragma omp parallel for reduction(max : maxDist) schedule(static)
+#pragma omp parallel for reduction(max : maxDist) schedule(guided)
     for (int i = 0; i < K; i++) {
       distCentroids[i] = euclideanDistance(&centroids[i * samples],
                                            &auxCentroids[i * samples], samples);

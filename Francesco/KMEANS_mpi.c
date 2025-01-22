@@ -399,8 +399,8 @@ int main(int argc, char *argv[]) {
     pointsPerClass[K] = changes;
     zeroIntArray(glob_pointsPerClass, K + 1);
 
-    MPI_Allreduce(pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM,
-                  MPI_COMM_WORLD);
+    MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM,
+                   MPI_COMM_WORLD, &requests[0]);
 
     zeroFloatMatriz(auxCentroids, K, samples);
     zeroFloatMatriz(glob_auxCentroids, K, samples);
@@ -411,8 +411,9 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    MPI_Allreduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,
-                  MPI_SUM, MPI_COMM_WORLD);
+    MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,
+                   MPI_SUM, MPI_COMM_WORLD, &requests[1]);
+    MPI_Waitall(2, requests, MPI_STATUSES_IGNORE);
     for (i = 0; i < K; i++) {
       reciprocal = 1.0f / glob_pointsPerClass[i];
       for (j = 0; j < samples; j++) {

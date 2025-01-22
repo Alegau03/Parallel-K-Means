@@ -10,6 +10,7 @@
 
 # Compilers
 CC=gcc
+CC2=gcc-14
 OMPFLAG=-fopenmp
 MPICC=mpicc
 CUDACC=nvcc
@@ -44,7 +45,7 @@ KMEANS_seq: KMEANS.c
 	$(CC) $(FLAGS) $(DEBUG) $< $(LIBS) -o $@
 
 KMEANS_omp: KMEANS_omp.c
-	$(CC) $(FLAGS) $(DEBUG) $(OMPFLAG) $< $(LIBS) -o $@
+	$(CC2) $(FLAGS) $(DEBUG) $(OMPFLAG) $< $(LIBS) -o $@
 
 KMEANS_mpi: KMEANS_mpi.c
 	$(MPICC) $(FLAGS) $(DEBUG) $< $(LIBS) -o $@
