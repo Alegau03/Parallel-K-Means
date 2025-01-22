@@ -347,7 +347,8 @@ int main(int argc, char *argv[]) {
   int pointsPerThread = 4;
 
   OptimalBlockGridDims(ceil(lines / pointsPerThread), &blockSize, &gridSize);
-  cudaMalloc((void **)&d_centroids, K * samples * sizeof(float));
+  CHECK_CUDA_CALL(
+      cudaMalloc((void **)&d_centroids, K * samples * sizeof(float)));
   cudaMalloc((void **)&d_data, lines * samples * sizeof(float));
   cudaMalloc((void **)&d_classMap, lines * sizeof(int));
   cudaMalloc((void **)&d_auxCentroids, K * samples * sizeof(float));
@@ -377,12 +378,12 @@ int main(int argc, char *argv[]) {
         d_pointsPerClass, d_auxCentroids, d_changes, d_centroids, d_data,
         d_classMap);
     cudaDeviceSynchronize();
+    cudaMemcpy(&changes, d_changes, sizeof(int), cudaMemcpyDeviceToHost);
 
     GPU_CentroidsUpdate<<<K, samples>>>(d_pointsPerClass, d_auxCentroids,
                                         d_centroids);
     cudaDeviceSynchronize();
 
-    cudaMemcpy(&changes, d_changes, sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(auxCentroids, d_centroids, K * samples * sizeof(float),
                cudaMemcpyDeviceToHost);
 
@@ -487,6 +488,8 @@ void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
 
     GridDim += (p.multiProcessorCount / 2);
   }
+  cudaDeviceSetLimit(cudaLimitPersistingL2CacheSize,
+                     p.persistingL2CacheMaxSize);
   *optGridDim = GridDim;
   *optBlockDim = BlockDim;
 
@@ -501,6 +504,7 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
   int global_id = threadIdx.x + blockIdx.x * blockDim.x;
   int blocksize = blockDim.x;
   int t_id = threadIdx.x;
+  int ptPerThread = d_pointsPerThread;
   int local_changes = 0;
   int centroid_size = d_samples * d_K;
 
@@ -521,15 +525,14 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
   }
 
   __syncthreads();
-  for (int i = 0; i < d_pointsPerThread; ++i) {
-    int pointIndex = global_id * d_pointsPerThread + i;
+  for (int i = 0; i < ptPerThread; ++i) {
+    int pointIndex = global_id * ptPerThread + i;
     if (pointIndex >= d_lines)
       return;
 
     int Class = 1;
     float minDist = FLT_MAX;
     float dist;
-
     for (int j = 0; j < d_K; j++) {
       dist = euclideanDistance(&d_data[pointIndex * d_samples],
                                &shared_centroids[j * d_samples], d_samples);
@@ -538,10 +541,9 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
         Class = j + 1;
       }
     }
-    int oldClass = d_classMap[pointIndex];
-    d_classMap[pointIndex] = Class;
 
-    if (oldClass != Class) {
+    if (d_classMap[pointIndex] != Class) {
+      d_classMap[pointIndex] = Class;
       local_changes++;
     }
 
