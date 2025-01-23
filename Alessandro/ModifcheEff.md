@@ -16,6 +16,28 @@ Tutte le volte 100 iterazioni, per il codice Seriale, MPI e OpenMP la compilazio
 0.756609
 
 ## MPI
+SENZA OTTIMIZZAZIONE SULLA DISTANZA
+### INPUT 2D
+4 Processi: 0.001664
+8 Processi: 0.003303
+### INPUT 2D2
+4 Processi: 0.000062
+8 Processi: 0.000501
+### INPUT 10D
+4 Processi: 0.001631
+8 Processi: 0.004420
+### INPUT 20D
+4 Processi: 0.003027
+8 Processi: 0.009437
+### INPUT 100D
+4 Processi: 0.013744
+8 Processi: 0.029766
+### INPUT 100D2
+4 Processi: 0.218143
+8 Processi: 0.298986
+
+
+CON OTTIMIZZAZIONE SULLA DISTANZA
 ### INPUT 2D
 4 Processi: 
 8 Processi: 
@@ -32,9 +54,8 @@ Tutte le volte 100 iterazioni, per il codice Seriale, MPI e OpenMP la compilazio
 4 Processi: 
 8 Processi: 
 ### INPUT 100D2
-4 Processi: 0.156073
+4 Processi: 
 8 Processi: 
-
 
 ## OMP
 ### INPUT 2D
@@ -48,9 +69,8 @@ Tutte le volte 100 iterazioni, per il codice Seriale, MPI e OpenMP la compilazio
 ### INPUT 100D
 
 ### INPUT 100D2
-0.219560 non ottimizzato
-0.151837 ottimizzato
-0.150502
+
+
 
 
 ## CUDA

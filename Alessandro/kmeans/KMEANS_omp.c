@@ -173,7 +173,7 @@ float euclideanDistance(float *point, float *center, int samples) {
 
     // Calcolo a blocchi
     //Cliclo esterno per avanzare nei blocchi
-    #pragma omp unroll
+    
     for (i = 0; i < samples; i += blockSize) {
         float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
         //Ciclo interno per calcolare la distanza tra i punti
