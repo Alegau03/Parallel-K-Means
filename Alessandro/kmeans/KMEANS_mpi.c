@@ -192,26 +192,24 @@ Abbiamo utilizzato due versioni di euclideanDistance perchè in questo modo su i
 abbiamo potuto usare l'unrolling per migliorare le prestazioni.
 */
 float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
-  float dist = 0.0f;
   int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
   int i, j;
-  float diff;
-
+  float diff1, diff2;
+  diff1 = 0.0f;
+  diff2 = 0.0f;
   // Calcolo a blocchi
   // Cliclo esterno per avanzare nei blocchi
 
   for (i = 0; i < samples; i += blockSize) {
-    float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
     // Ciclo interno per calcolare la distanza tra i punti
     for (j = i; j * UNROLL < i + blockSize && j * UNROLL < samples; j++) {
-      diff = (point[j] - center[j]) * (point[j] - center[j]);
-      diff += (point[j + 1] - center[j + 1]) * (point[j + 1] - center[j + 1]);
-      blockDist += diff;
+      diff1 += (point[j * UNROLL] - center[j * UNROLL]) *
+               (point[j * UNROLL] - center[j * UNROLL]);
+      diff2 += (point[j * UNROLL + 1] - center[j * UNROLL + 1]) *
+               (point[j * UNROLL + 1] - center[j * UNROLL + 1]);
     }
-    dist += blockDist; // Somma il risultato del blocco
   }
-
-  return dist; // Restituisce la distanza al quadrato
+  return diff1 + diff2; // Restituisce la distanza al quadrato
 }
 /*
 Function euclideanDistance: distanca Euclicea tra due punti
