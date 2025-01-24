@@ -168,28 +168,23 @@ l’efficienza computazionale, dato che è un'operazione costosa.
 */
 // Funzione ottimizzata per il calcolo della distanza euclidea
 float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
-  float dist = 0.0f;
   int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
   int i, j;
-  float diff;
+  float diff1, diff2;
 
   // Calcolo a blocchi
   // Cliclo esterno per avanzare nei blocchi
 
   for (i = 0; i < samples; i += blockSize) {
-    float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
     // Ciclo interno per calcolare la distanza tra i punti
     for (j = i; j * UNROLL < i + blockSize && j * UNROLL < samples; j++) {
-      diff = (point[j * UNROLL] - center[j * UNROLL]) *
-             (point[j * UNROLL] - center[j * UNROLL]);
-      diff += (point[j * UNROLL + 1] - center[j * UNROLL + 1]) *
-              (point[j * UNROLL + 1] - center[j * UNROLL + 1]);
-      blockDist += diff;
+      diff1 += (point[j * UNROLL] - center[j * UNROLL]) *
+               (point[j * UNROLL] - center[j * UNROLL]);
+      diff2 += (point[j * UNROLL + 1] - center[j * UNROLL + 1]) *
+               (point[j * UNROLL + 1] - center[j * UNROLL + 1]);
     }
-    dist += blockDist; // Somma il risultato del blocco
   }
-
-  return dist; // Restituisce la distanza al quadrato
+  return diff1 + diff2; // Restituisce la distanza al quadrato
 }
 float euclideanDistance(float *point, float *center, int samples) {
   float dist = 0.0f;
@@ -349,7 +344,7 @@ int main(int argc, char *argv[]) {
    *
    */
   float (*distanceFun)(float *, float *, int) =
-      (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
+      (samples % UNROLL == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
   do {
     it++;
     changes = 0;
