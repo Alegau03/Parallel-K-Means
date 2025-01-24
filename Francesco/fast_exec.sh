@@ -1,10 +1,10 @@
 mpicc KMEANS_mpi.c -o kmeans_mpi 
 gcc-14 -O3 -fopenmp KMEANS_omp.c -o kmeans_omp
 mpirun  -n 8   ./kmeans_mpi test_files/input2D.inp 6 3000 10 0.00001 test_files/output2D  > result_mpi
-./kmeans_omp test_files/input2D.inp 600 3000 1 0.00001 test_files/output2D_omp > result_omp
+./kmeans_omp test_files/input2D.inp 6 3000 10 0.00001 test_files/output2D_omp > result_omp
 
 gcc -O3 KMEANS.c -o kmeans
-./kmeans test_files/input2D.inp 600 3000 1 0.00001 test_files/output2D_seq > result_seq
+./kmeans test_files/input2D.inp 6 3000 10 0.00001 test_files/output2D_seq > result_seq
 cd test_files
 paste input2D.inp output2D_omp > graph2D.txt   
 paste input2D.inp output2D_seq > graph2D_seq.txt 

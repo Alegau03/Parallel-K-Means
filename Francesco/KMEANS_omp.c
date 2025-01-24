@@ -167,7 +167,7 @@ le distanze al quadrato. Evitare il calcolo della radice quadrata migliora
 l’efficienza computazionale, dato che è un'operazione costosa.
 */
 // Funzione ottimizzata per il calcolo della distanza euclidea
-float euclideanDistance(float *point, float *center, int samples) {
+float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
   float dist = 0.0f;
   int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
   int i, j;
@@ -182,6 +182,27 @@ float euclideanDistance(float *point, float *center, int samples) {
     for (j = i; j * UNROLL < i + blockSize && j * UNROLL < samples; j++) {
       diff = (point[j] - center[j]) * (point[j] - center[j]);
       diff += (point[j + 1] - center[j + 1]) * (point[j + 1] - center[j + 1]);
+      blockDist += diff;
+    }
+    dist += blockDist; // Somma il risultato del blocco
+  }
+
+  return dist; // Restituisce la distanza al quadrato
+}
+float euclideanDistance(float *point, float *center, int samples) {
+  float dist = 0.0f;
+  int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
+  int i, j;
+  float diff;
+
+  // Calcolo a blocchi
+  // Cliclo esterno per avanzare nei blocchi
+
+  for (i = 0; i < samples; i += blockSize) {
+    float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
+    // Ciclo interno per calcolare la distanza tra i punti
+    for (j = i; j < i + blockSize && j < samples; j++) {
+      diff = (point[j] - center[j]) * (point[j] - center[j]);
       blockDist += diff;
     }
     dist += blockDist; // Somma il risultato del blocco
@@ -325,6 +346,8 @@ int main(int argc, char *argv[]) {
    * START HERE: DO NOT CHANGE THE CODE ABOVE THIS POINT
    *
    */
+  float (*distanceFun)(float *, float *, int) =
+      (samples % 2 == 0) ? euclideanDistance : UNROLLEDeuclideanDistance;
   do {
     it++;
     changes = 0;
@@ -333,8 +356,8 @@ int main(int argc, char *argv[]) {
       class = 1;
       float minDist = FLT_MAX;
       for (int j = 0; j < K; j++) {
-        float dist = euclideanDistance(&data[i * samples],
-                                       &centroids[j * samples], samples);
+        float dist =
+            distanceFun(&data[i * samples], &centroids[j * samples], samples);
         if (dist < minDist) {
           minDist = dist;
           class = j + 1;
@@ -366,8 +389,8 @@ int main(int argc, char *argv[]) {
     maxDist = FLT_MIN;
 #pragma omp parallel for reduction(max : maxDist) schedule(guided)
     for (int i = 0; i < K; i++) {
-      distCentroids[i] = euclideanDistance(&centroids[i * samples],
-                                           &auxCentroids[i * samples], samples);
+      distCentroids[i] = distanceFun(&centroids[i * samples],
+                                     &auxCentroids[i * samples], samples);
       maxDist = MAX(maxDist, distCentroids[i]);
     }
 
