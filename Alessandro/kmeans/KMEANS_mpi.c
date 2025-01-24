@@ -25,7 +25,7 @@
 
 #define MAXLINE 2000
 #define MAXCAD 200
-
+#define UNROLL 2
 // Distribuisce ciclicamente ((size+tmp)%size) i punti del dataset in modo bilanciato tra i processi MPI.
 #define DISTRIBUTION(size, points, dist)                                       \
   int tmp = 0;                                                                 \
@@ -187,7 +187,32 @@ void initCentroids(const float *data, float *centroids, int *centroidPos,
            (samples * sizeof(float)));
   }
 }
+/*
+Abbiamo utilizzato due versioni di euclideanDistance perchè in questo modo su input a due dimensioni
+abbiamo potuto usare l'unrolling per migliorare le prestazioni.
+*/
+float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
+  float dist = 0.0f;
+  int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
+  int i, j;
+  float diff;
 
+  // Calcolo a blocchi
+  // Cliclo esterno per avanzare nei blocchi
+
+  for (i = 0; i < samples; i += blockSize) {
+    float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
+    // Ciclo interno per calcolare la distanza tra i punti
+    for (j = i; j * UNROLL < i + blockSize && j * UNROLL < samples; j++) {
+      diff = (point[j] - center[j]) * (point[j] - center[j]);
+      diff += (point[j + 1] - center[j + 1]) * (point[j + 1] - center[j + 1]);
+      blockDist += diff;
+    }
+    dist += blockDist; // Somma il risultato del blocco
+  }
+
+  return dist; // Restituisce la distanza al quadrato
+}
 /*
 Function euclideanDistance: distanca Euclicea tra due punti
 
@@ -411,7 +436,8 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
   int *localClassMap = calloc(my_iteration, sizeof(int)); //Memorizza la classe assegnata a ciascun punto del dataset.
   MPI_Request requests[2]; //Array di richieste MPI.
   float reciprocal; 
-
+  float (*distanceFun)(float *, float *, int) =
+      (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
   do {
     it++;
 
@@ -423,8 +449,7 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
       class = 1;
       minDist = FLT_MAX;
       for (j = 0; j < K; j++) {
-        dist = euclideanDistance(&data[i * samples], &centroids[j * samples],
-                                 samples);
+        dist = distanceFun(&data[i * samples], &centroids[j * samples], samples);
 
         if (dist < minDist) {
           minDist = dist;
@@ -484,8 +509,8 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
     memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float)));
     maxDist = FLT_MIN;
     for (i = 0; i < K; i++) {
-      distCentroids[i] = euclideanDistance(&centroids[i * samples],
-                                           &auxCentroids[i * samples], samples);
+      distCentroids[i] = distanceFun(&centroids[i * samples],
+                                     &auxCentroids[i * samples], samples);
       maxDist = MAX(maxDist, distCentroids[i]);
     }
     sprintf(line, "\n[%d] Cluster changes: %d\tMax. centroid distance: %f", it,

@@ -59,7 +59,7 @@ CON OTTIMIZZAZIONE SULLA DISTANZA
 4 Processi: 0.009717
 8 Processi: 0.029113
 ### INPUT 100D2
-4 Processi: 0.152670 | 
+4 Processi: 0.152670 | 0.088549
 8 Processi: 0.278053
 
 ## Alcuni test su MPI
