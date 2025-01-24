@@ -70,8 +70,8 @@ echo "Differenze outputs"
 #diff output100d2_seq.txt output100d2_omp.txt
 #echo "Differenze tra output sequenziale e MPI+OpenMP"
 #diff output2d_seq.txt output2d_mpi_omp.txt
-#echo "Differenze tra output MPI e OpenMP"
-#diff output100d2_mpi.txt output100d2_omp.txt
+echo "Differenze tra output MPI e OpenMP"
+diff output100d2_mpi.txt output100d2_omp.txt
 #echo "Differenze tra output MPI e MPI+OpenMP"
 #diff output2d_mpi.txt output2d_mpi_omp.txt
 #echo "Differenze tra output OpenMP e MPI+OpenMP"

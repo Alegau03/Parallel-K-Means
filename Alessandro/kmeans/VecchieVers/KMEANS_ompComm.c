@@ -25,7 +25,6 @@
 
 #define MAXLINE 2000
 #define MAXCAD 200
-#define UNROLL 2
 
 #define CALLTIME(start, call)                                                  \
   call;                                                                        \
@@ -165,32 +164,6 @@ void initCentroids(const float *data, float *centroids, int *centroidPos,
 }
 
 /*
-Abbiamo utilizzato due versioni di euclideanDistance perchè in questo modo su input a due dimensioni
-abbiamo potuto usare l'unrolling per migliorare le prestazioni.
-*/
-float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
-  float dist = 0.0f;
-  int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
-  int i, j;
-  float diff;
-
-  // Calcolo a blocchi
-  // Cliclo esterno per avanzare nei blocchi
-
-  for (i = 0; i < samples; i += blockSize) {
-    float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
-    // Ciclo interno per calcolare la distanza tra i punti
-    for (j = i; j * UNROLL < i + blockSize && j * UNROLL < samples; j++) {
-      diff = (point[j] - center[j]) * (point[j] - center[j]);
-      diff += (point[j + 1] - center[j + 1]) * (point[j + 1] - center[j + 1]);
-      blockDist += diff;
-    }
-    dist += blockDist; // Somma il risultato del blocco
-  }
-
-  return dist; // Restituisce la distanza al quadrato
-}
-/*
 Function euclideanDistance: distanca Euclicea tra due punti
 
 La radice quadrata non è necessaria per confrontare le distanze relative tra punti e centroidi, 
@@ -200,26 +173,26 @@ Divide il lavoro in blocchi di dimensione blockSize
 Questo migliora la località temporale e spaziale per ridurre i cache miss.
 */
 float euclideanDistance(float *point, float *center, int samples) {
-  float dist = 0.0f;
-  int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
-  int i, j;
-  float diff;
+    float dist = 0.0f;
+    int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
+    int i, j;
+    float diff;
 
-  // Calcolo a blocchi
-  // Cliclo esterno per avanzare nei blocchi
-
-  for (i = 0; i < samples; i += blockSize) {
-    float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
-    // Ciclo interno per calcolare la distanza tra i punti
-    for (j = i; j < i + blockSize && j < samples; j++) {
-      diff = (point[j] - center[j]) * (point[j] - center[j]);
-      blockDist += diff;
+    // Calcolo a blocchi
+    //Cliclo esterno per avanzare nei blocchi
+    for (i = 0; i < samples; i += blockSize) {
+        float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
+        //Ciclo interno per calcolare la distanza tra i punti
+        for (j = i; j < i + blockSize && j < samples; j++) {
+            diff = point[j] - center[j];
+            blockDist += diff * diff;
+        }
+        dist += blockDist; // Somma il risultato del blocco
     }
-    dist += blockDist; // Somma il risultato del blocco
-  }
 
-  return dist; // Restituisce la distanza al quadrato
+    return dist; // Restituisce la distanza al quadrato
 }
+
 
 /*
 Function zeroFloatMatriz: Set matrix elements to 0
@@ -293,16 +266,18 @@ int main(int argc, char *argv[]) {
     exit(error);
   }
 
-  // Parameters
+  // Parameters e allocazioni
   int K = atoi(argv[2]);
   int maxIterations = atoi(argv[3]);
   int minChanges = (int)(lines * atof(argv[4]) / 100.0);
   float maxThreshold = atof(argv[5]);
+
 /*
 centroidPos: Indici dei punti del dataset scelti come centroidi iniziali.
 centroids: Coordinate dei centroidi correnti (inizializzate a 0 ma poi popolate con initCentroids).
 classMap: Mappa che associa ogni punto del dataset al suo cluster corrente.
 */
+
   int *centroidPos = (int *)calloc(K, sizeof(int));
   float *centroids = (float *)calloc(K * samples, sizeof(float));
   int *classMap = (int *)calloc(lines, sizeof(int));
@@ -361,8 +336,6 @@ classMap: Mappa che associa ogni punto del dataset al suo cluster corrente.
    * START HERE: DO NOT CHANGE THE CODE ABOVE THIS POINT
    *
    */
-  float (*distanceFun)(float *, float *, int) =
-      (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
   do {
     it++;
     changes = 0;
@@ -374,13 +347,14 @@ In particolare:
 - La clausola schedule(static) viene utilizzata per distribuire equamente il lavoro tra i thread, utilizziamo static invece che dynamic per evitare overhead di sincronizzazione e perche i dati sono regolari.
 - La variabile class è dichiarata privata per garantire che ogni thread abbia la propria copia locale.
 */
-#pragma omp parallel for reduction(+ : changes) schedule(guided) private(class)
+
+#pragma omp parallel for reduction(+ : changes) schedule(static) private(class)
     for (int i = 0; i < lines; i++) {
       class = 1;
       float minDist = FLT_MAX;
       for (int j = 0; j < K; j++) {
-        float dist =
-            distanceFun(&data[i * samples], &centroids[j * samples], samples);
+        float dist = euclideanDistance(&data[i * samples],
+                                       &centroids[j * samples], samples);
         if (dist < minDist) {
           minDist = dist;
           class = j + 1;
@@ -392,6 +366,7 @@ In particolare:
       classMap[i] = class;
     }
     zeroFloatMatriz(auxCentroids, K, samples);
+   
     for (int i = 0; i < lines; i++) {
       class = classMap[i] - 1;
       pointsPerClass[class]++;
@@ -400,7 +375,6 @@ In particolare:
       }
     }
 
-
 // Questo blocco di codice aggiorna i centroidi calcolando la media dei punti appartenenti a ciascun cluster.
 /*
 Con OpenMP, più thread aggiornano simultaneamente i centroidi di diversi cluster.
@@ -408,7 +382,7 @@ La direttiva #pragma omp parallel for viene utilizzata per parallelizzare il cic
 In particolare:
 - La clausola schedule(static) viene utilizzata per distribuire equamente il lavoro tra i thread, utilizziamo static invece che dynamic per evitare overhead di sincronizzazione e perche i dati sono regolari.
 - La variabile i è dichiarata privata per garantire che ogni thread abbia la propria copia locale.
-*/  
+*/    
 #pragma omp parallel for schedule(static)
     for (int i = 0; i < K; i++) {
       for (int j = 0; j < samples; j++) {
@@ -429,11 +403,11 @@ In particolare:
 - La clausola reduction(max : maxDist) viene utilizzata per garantire che la variabile maxDist sia aggiornata correttamente in parallelo.
 - La clausola schedule(static) viene utilizzata per distribuire equamente il lavoro tra i thread, utilizziamo static invece che dynamic per evitare overhead di sincronizzazione e perche i dati sono regolari.
 - La variabile i è dichiarata privata per garantire che ogni thread abbia la propria copia locale.
-*/ 
-#pragma omp parallel for reduction(max : maxDist) schedule(guided)
+*/    
+#pragma omp parallel for reduction(max : maxDist) schedule(static)
     for (int i = 0; i < K; i++) {
-      distCentroids[i] = distanceFun(&centroids[i * samples],
-                                     &auxCentroids[i * samples], samples);
+      distCentroids[i] = euclideanDistance(&centroids[i * samples],
+                                           &auxCentroids[i * samples], samples);
       maxDist = MAX(maxDist, distCentroids[i]);
     }
 
@@ -443,7 +417,7 @@ In particolare:
            changes, sqrt(maxDist));
 
   } while ((changes > minChanges) && (it < maxIterations) &&
-           (sqrt(maxDist) > maxThreshold));
+           (sqrt(maxDist) > maxThreshold)); // Clausola di arrest
 
   /*
    *

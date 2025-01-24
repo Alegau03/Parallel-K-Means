@@ -1,8 +1,11 @@
 ⁠- ⁠Commentare OMP - FATTO
 - Ottimizza OMP - FATTO
+- RUN OMP OPT
 -⁠ ⁠Fare grafici
     - MPI OPT vs MPI No OPT - FATTO
-    - OMP OPT vs OMP No OPT
     - Completo
 -⁠ ⁠Versione MPI+OMP
--⁠ ⁠Scrivere relazione su omp, mpi+omp, problema avuto con 100D2
+-⁠ ⁠Scrivere relazione su:
+    - omp - FATTO
+    - mpi+omp, 
+    - problema avuto con 100D2
