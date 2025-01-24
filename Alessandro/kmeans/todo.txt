@@ -4,7 +4,8 @@
 - Prova unrolling su mpi
 -⁠ ⁠Fare grafici
     - MPI OPT vs MPI No OPT - FATTO
-    - Vari processi MPI
+    - Vari processi MPI - FATTO
+    - MPI vs OMP vs Mpi+OMP con 4 processi
     - Completo
 -⁠ ⁠Versione MPI+OMP
 -⁠ ⁠Scrivere relazione su:
