@@ -347,7 +347,7 @@ int main(int argc, char *argv[]) {
    *
    */
   float (*distanceFun)(float *, float *, int) =
-      (samples % 2 == 0) ? euclideanDistance : UNROLLEDeuclideanDistance;
+      (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
   do {
     it++;
     changes = 0;
