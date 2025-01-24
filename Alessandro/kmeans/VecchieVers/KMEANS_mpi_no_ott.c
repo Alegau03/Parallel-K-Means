@@ -200,28 +200,13 @@ Function euclideanDistance: distanca Euclicea tra due punti
 La radice quadrata non è necessaria per confrontare le distanze relative tra punti e centroidi, 
 poiché il confronto è valido anche con le distanze al quadrato.
 Evitare il calcolo della radice quadrata migliora l’efficienza computazionale, dato che è un'operazione costosa.
-Divide il lavoro in blocchi di dimensione blockSize
-Questo migliora la località temporale e spaziale per ridurre i cache miss.
 */
 float euclideanDistance(float *point, float *center, int samples) {
-    float dist = 0.0f;
-    int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
-    int i, j;
-    float diff;
-
-    // Calcolo a blocchi
-    //Cliclo esterno per avanzare nei blocchi
-    for (i = 0; i < samples; i += blockSize) {
-        float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
-        //Ciclo interno per calcolare la distanza tra i punti
-        for (j = i; j < i + blockSize && j < samples; j++) {
-            diff = point[j] - center[j];
-            blockDist += diff * diff;
-        }
-        dist += blockDist; // Somma il risultato del blocco
-    }
-
-    return dist; // Restituisce la distanza al quadrato
+  float dist = 0.0;
+  for (int i = 0; i < samples; i++) {
+    dist += (point[i] - center[i]) * (point[i] - center[i]);
+  }
+  return sqrt(dist);
 }
 /*
 Function zeroFloatMatriz: Set matrix elements to 0
@@ -500,7 +485,7 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
 
     //Condizione di terminazione
   } while ((changes > minChanges) && (it < maxIterations) &&
-           (sqrt(maxDist) > maxThreshold));
+           (maxDist > maxThreshold));
 
   // Raccoglie tutte le classificazioni locali nei processi e le combina nel processo con rank 0.
   MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
