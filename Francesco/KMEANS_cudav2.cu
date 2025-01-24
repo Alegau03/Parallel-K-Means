@@ -376,7 +376,7 @@ int main(int argc, char *argv[]) {
   do {
     changes = 0;
 
-    GPU_ClassAssignment<<<gridSize, blockSize>>>(
+    GPU_ClassAssignment<<<gridSize, blockSize, sizeof(int) * K>>>(
         d_pointsPerClass, d_auxCentroids, d_changes, d_centroids, d_data,
         d_classMap);
     cudaDeviceSynchronize();
@@ -533,6 +533,7 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
                                     float *d_auxCentroids, int *d_changes,
                                     float *d_centroids, float *d_data,
                                     int *d_classMap) {
+  extern __shared__ int localPointPerClass[];
   int global_id = threadIdx.x + blockIdx.x * blockDim.x;
   int local_changes = 0;
 
@@ -559,13 +560,34 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
     }
 
     Class -= 1;
-    atomicAdd(&d_pointsPerClass[Class], 1);
+    atomicAdd(&localPointPerClass[Class], 1);
     for (int j = 0; j < d_samples; j++) {
       atomicAdd(&d_auxCentroids[Class * d_samples + j],
                 d_data[pointIndex * d_samples + j]);
     }
   }
   atomicAdd(d_changes, local_changes);
+  __syncthreads();
+  int classPerThread;
+  int classOffset;
+  if (blockDim.x > d_K) {
+    int remainder = d_K % blockDim.x;
+    classPerThread = (threadIdx.x < remainder)
+                         ? ((d_K - remainder) / blockDim.x) + 1
+                         : (d_K - remainder) / blockDim.x;
+    classOffset = (threadIdx.x < remainder)
+                      ? threadIdx.x * classPerThread
+                      : remainder * (classPerThread + 1) +
+                            (classPerThread * (threadIdx.x - remainder));
+    for (int i = classOffset; i < classOffset + classPerThread; i++) {
+      atomicAdd(&d_pointsPerClass[i], localPointPerClass[i]);
+    }
+  } else {
+    if (threadIdx.x < d_K) {
+      atomicAdd(&d_pointsPerClass[threadIdx.x],
+                localPointPerClass[threadIdx.x]);
+    }
+  }
 }
 
 __global__ void GPU_CentroidsUpdate(int *d_pointsPerClass,
