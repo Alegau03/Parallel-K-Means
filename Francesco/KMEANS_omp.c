@@ -180,8 +180,10 @@ float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
     float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
     // Ciclo interno per calcolare la distanza tra i punti
     for (j = i; j * UNROLL < i + blockSize && j * UNROLL < samples; j++) {
-      diff = (point[j] - center[j]) * (point[j] - center[j]);
-      diff += (point[j + 1] - center[j + 1]) * (point[j + 1] - center[j + 1]);
+      diff = (point[j * UNROLL] - center[j * UNROLL]) *
+             (point[j * UNROLL] - center[j * UNROLL]);
+      diff += (point[j * UNROLL + 1] - center[j * UNROLL + 1]) *
+              (point[j * UNROLL + 1] - center[j * UNROLL + 1]);
       blockDist += diff;
     }
     dist += blockDist; // Somma il risultato del blocco
