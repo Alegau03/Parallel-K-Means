@@ -26,8 +26,8 @@ SENZA OTTIMIZZAZIONE SULLA DISTANZA
 4 Processi: 0.001697
 8 Processi: 0.003303
 ### INPUT 2D2
-4 Processi: 0.000062
-8 Processi: 0.001132
+4 Processi: 
+8 Processi: 
 ### INPUT 10D
 4 Processi: 0.001745
 8 Processi: 0.004330
@@ -44,20 +44,120 @@ SENZA OTTIMIZZAZIONE SULLA DISTANZA
 
 CON OTTIMIZZAZIONE SULLA DISTANZA
 ### INPUT 2D
+2 Processi: 0.001493
+3 Processi: 0.001487
 4 Processi: 0.004095
+5 Processi: 0.002332
+6 Processi: 0.002867
+7 Processi: 0.003209
 8 Processi: 0.005206
 ### INPUT 2D2
-4 Processi: 0.000059
-8 Processi: 0.000899
+2 Processi: 0.000037
+3 Processi: 0.000041
+4 Processi: 0.000051
+5 Processi: 0.000223
+6 Processi: 0.000238
+7 Processi: 0.000446
+8 Processi: 0.001058
 ### INPUT 10D
+2 Processi: 0.001226
+3 Processi: 0.001261
 4 Processi: 0.001654
-8 Processi: 0.006909
+5 Processi: 0.001981
+6 Processi: 0.002146
+7 Processi: 0.002781
+8 Processi: 0.006909 
 ### INPUT 20D
+2 Processi: 0.004959
+3 Processi: 0.003669
 4 Processi: 0.002952
+5 Processi: 0.007657
+6 Processi: 0.011217
+7 Processi: 0.011975
 8 Processi: 0.011499
 ### INPUT 100D
+2 Processi: 0.015018
+3 Processi: 0.010801
 4 Processi: 0.009717
+5 Processi: 0.018994
+6 Processi: 0.018681
+7 Processi: 0.019969
 8 Processi: 0.029113
 ### INPUT 100D2
-4 Processi: 0.152670
-8 Processi: 0.278053
+2 Processi: 0.110244
+3 Processi: 0.080355
+4 Processi: 0.067982
+5 Processi: 0.123403
+6 Processi: 0.122489
+7 Processi: 0.119901
+8 Processi: 0.146152
+
+## Alcuni test su MPI
+Faccio delle esecuzioni con altri parametri, saranno tutti svolti con MPI ottimizzato con 4 thread (il più veloce) su input 100D2
+
+### Prima Esecuzione
+- NUM_CLUSTER=100
+- MAX_ITERATIONS=300
+- MIN_CHANGES=1
+- THRESHOLD=0.0001
+Tempo: 2.461747
+
+### Seconda Esecuzione
+- NUM_CLUSTER=1000
+- MAX_ITERATIONS=300
+- MIN_CHANGES=1
+- THRESHOLD=0.0001
+Tempo: 5.804244
+
+### Terza Esecuzione
+- NUM_CLUSTER=1000
+- MAX_ITERATIONS=300
+- MIN_CHANGES=0.001
+- THRESHOLD=0.0001
+Tempo: 21.353719
+
+### Quarta Esecuzione
+- NUM_CLUSTER=10000
+- MAX_ITERATIONS=300
+- MIN_CHANGES=1
+- THRESHOLD=0.0001
+Tempo: 30.266113
+
+### Quinta Esecuzione
+- NUM_CLUSTER=10000
+- MAX_ITERATIONS=300
+- MIN_CHANGES=0.001
+- THRESHOLD=0.0001
+Tempo: 115.531722
+## OMP
+
+CON OTTIMIZZAZIONE SULLA DISTANZA
+
+### INPUT 2D
+0.001015
+### INPUT 2D2
+0.000257
+### INPUT 10D
+0.000796
+### INPUT 20D
+0.004708
+### INPUT 100D
+0.008996
+### INPUT 100D2
+0.081544
+
+## MPI + OPENMP
+### INPUT 2D
+
+### INPUT 2D2
+
+### INPUT 10D
+
+### INPUT 20D
+
+### INPUT 100D
+
+### INPUT 100D2
+
+
+## CUDA
