@@ -1,5 +1,5 @@
-⁠- ⁠Commentare OMP
-- Ottimizza OMP
+⁠- ⁠Commentare OMP - FATTO
+- Ottimizza OMP - FATTO
 -⁠ ⁠Fare grafici
     - MPI OPT vs MPI No OPT - FATTO
     - OMP OPT vs OMP No OPT

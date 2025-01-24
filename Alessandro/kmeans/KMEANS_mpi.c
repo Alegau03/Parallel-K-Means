@@ -61,13 +61,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-// Definisce un'operazione di riduzione personalizzata per MPI, in cui i valori degli array vengono sommati elemento per elemento
-void sum_op(void *inP, void *inoutP, int *len, MPI_Datatype *dptr) {
-  float *in = (float *)inP, *inout = (float *)inoutP;
-  for (int i = 0; i < *len; i++) {
-    inout[i] += in[i];
-  }
-}
+
 /*
 Function showFileError: It displays the corresponding error during file
 reading.

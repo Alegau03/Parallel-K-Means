@@ -7,7 +7,7 @@
 	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.230376 seconds
+Memory allocation: 0.223648 seconds
 
 [1] Cluster changes: 100000	Max. centroid distance: 530.628540
 [2] Cluster changes: 10609	Max. centroid distance: 11.784917
@@ -46,9 +46,9 @@ Memory allocation: 0.230376 seconds
 [35] Cluster changes: 1067	Max. centroid distance: 1.595767
 [36] Cluster changes: 1006	Max. centroid distance: 1.648430
 [37] Cluster changes: 926	Max. centroid distance: 1.570572
-Computation: 0.774889 seconds
+Computation: 0.726796 seconds
 
 Termination condition:
 Minimum number of changes reached: 926 [1000]
 
-Memory deallocation: 0.005080 seconds
+Memory deallocation: 0.005028 seconds

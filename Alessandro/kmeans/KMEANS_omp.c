@@ -30,6 +30,7 @@
   call;                                                                        \
   double end_tmp = omp_get_wtime();                                            \
   printf("\n%s time : %lf\n ", #call, (end_tmp - start));
+// Misura il tempo di esecuzione di una singola chiamata o funzione
 
 #define BLOCKTIME(start, block)                                                \
   block double end_tmp = omp_get_wtime();                                      \
@@ -143,8 +144,13 @@ int writeResult(int *classMap, int lines, const char *filename) {
 
 /*
 
-Function initCentroids: This function copies the values of the initial
-centroids, using their position in the input data structure as a reference map.
+La funzione initCentroids:
+inizializza i centroidi del clustering K-means copiando i valori dai punti di partenza specificati all'interno del dataset originale.
+Definisce le posizioni iniziali dei centroidi, da cui il processo iterativo del K-means partirà.
+
+Inizializza l’array centroids con i dati dei punti selezionati, 
+che verranno poi utilizzati come punto di partenza per il calcolo iterativo dei centroidi nel K-means.
+
 */
 void initCentroids(const float *data, float *centroids, int *centroidPos,
                    int samples, int K) {
@@ -158,15 +164,33 @@ void initCentroids(const float *data, float *centroids, int *centroidPos,
 }
 
 /*
-Function euclideanDistance: Euclidean distance
-This function could be modified
+Function euclideanDistance: distanca Euclicea tra due punti
+
+La radice quadrata non è necessaria per confrontare le distanze relative tra punti e centroidi, 
+poiché il confronto è valido anche con le distanze al quadrato.
+Evitare il calcolo della radice quadrata migliora l’efficienza computazionale, dato che è un'operazione costosa.
+Divide il lavoro in blocchi di dimensione blockSize
+Questo migliora la località temporale e spaziale per ridurre i cache miss.
 */
 float euclideanDistance(float *point, float *center, int samples) {
-  float dist = 0.0;
-  for (int i = 0; i < samples; i++) {
-    dist += (point[i] - center[i]) * (point[i] - center[i]);
-  }
-  return (dist);
+    float dist = 0.0f;
+    int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
+    int i, j;
+    float diff;
+
+    // Calcolo a blocchi
+    //Cliclo esterno per avanzare nei blocchi
+    for (i = 0; i < samples; i += blockSize) {
+        float blockDist = 0.0f; // Accumulatore temporaneo per il blocco
+        //Ciclo interno per calcolare la distanza tra i punti
+        for (j = i; j < i + blockSize && j < samples; j++) {
+            diff = point[j] - center[j];
+            blockDist += diff * diff;
+        }
+        dist += blockDist; // Somma il risultato del blocco
+    }
+
+    return dist; // Restituisce la distanza al quadrato
 }
 
 /*
@@ -241,11 +265,17 @@ int main(int argc, char *argv[]) {
     exit(error);
   }
 
-  // Parameters
+  // Parameters e allocazioni
   int K = atoi(argv[2]);
   int maxIterations = atoi(argv[3]);
   int minChanges = (int)(lines * atof(argv[4]) / 100.0);
   float maxThreshold = atof(argv[5]);
+
+/*
+centroidPos: Indici dei punti del dataset scelti come centroidi iniziali.
+centroids: Coordinate dei centroidi correnti (inizializzate a 0 ma poi popolate con initCentroids).
+classMap: Mappa che associa ogni punto del dataset al suo cluster corrente.
+*/
 
   int *centroidPos = (int *)calloc(K, sizeof(int));
   float *centroids = (float *)calloc(K * samples, sizeof(float));
@@ -289,8 +319,9 @@ int main(int argc, char *argv[]) {
   int changes = 0;
   float maxDist;
 
-  // pointPerClass: number of points classified in each class
-  // auxCentroids: mean of the points in each class
+  // pointPerClass: Conta il numero di punti assegnati a ciascun cluster.
+  // auxCentroids: Contiene le somme delle coordinate dei punti assegnati a ciascun cluster, utilizzato per calcolare la media (centroide) di ciascun cluster aggiornandolo.
+  // distCentroids: Memorizza le distanze tra i centroidi precedenti e quelli aggiornati nell'iterazione corrente, calcolare il criterio di precisione dell'algoritmo, ovvero se i centroidi si sono spostati sotto una certa soglia (maxThreshold), il K-means può terminare.
   int *pointsPerClass = (int *)malloc(K * sizeof(int));
   float *auxCentroids = (float *)malloc(K * samples * sizeof(float));
   float *distCentroids = (float *)malloc(K * sizeof(float));
@@ -307,6 +338,15 @@ int main(int argc, char *argv[]) {
   do {
     it++;
     changes = 0;
+//Questo blocco di codice implementa la fase di assegnazione dei punti ai centroidi più vicini nel k-means
+/*
+La direttiva #pragma omp parallel for viene usata per parallelizzare il ciclo esterno (for i = 0), che iterava sequenzialmente nella versione seriale. 
+In particolare:
+- La clausola reduction(+ : changes) viene utilizzata per garantire che la variabile changes sia aggiornata correttamente in parallelo.
+- La clausola schedule(static) viene utilizzata per distribuire equamente il lavoro tra i thread, utilizziamo static invece che dynamic per evitare overhead di sincronizzazione e perche i dati sono regolari.
+- La variabile class è dichiarata privata per garantire che ogni thread abbia la propria copia locale.
+*/
+
 #pragma omp parallel for reduction(+ : changes) schedule(static) private(class)
     for (int i = 0; i < lines; i++) {
       class = 1;
@@ -325,6 +365,7 @@ int main(int argc, char *argv[]) {
       classMap[i] = class;
     }
     zeroFloatMatriz(auxCentroids, K, samples);
+   
     for (int i = 0; i < lines; i++) {
       class = classMap[i] - 1;
       pointsPerClass[class]++;
@@ -332,6 +373,15 @@ int main(int argc, char *argv[]) {
         auxCentroids[class * samples + j] += data[i * samples + j];
       }
     }
+
+// Questo blocco di codice aggiorna i centroidi calcolando la media dei punti appartenenti a ciascun cluster.
+/*
+Con OpenMP, più thread aggiornano simultaneamente i centroidi di diversi cluster.
+La direttiva #pragma omp parallel for viene utilizzata per parallelizzare il ciclo esterno (for i = 0), che iterava sequenzialmente nella versione seriale.
+In particolare:
+- La clausola schedule(static) viene utilizzata per distribuire equamente il lavoro tra i thread, utilizziamo static invece che dynamic per evitare overhead di sincronizzazione e perche i dati sono regolari.
+- La variabile i è dichiarata privata per garantire che ogni thread abbia la propria copia locale.
+*/    
 #pragma omp parallel for schedule(static)
     for (int i = 0; i < K; i++) {
       for (int j = 0; j < samples; j++) {
@@ -343,6 +393,16 @@ int main(int argc, char *argv[]) {
     zeroIntArray(pointsPerClass, K);
 
     maxDist = FLT_MIN;
+
+// Questo blocco di codice calcola la distanza tra i centroidi precedenti e quelli aggiornati nell'iterazione corrente.
+/*
+Con OpenMP, più thread calcolano simultaneamente le distanze tra i centroidi di diversi cluster.
+La direttiva #pragma omp parallel for viene utilizzata per parallelizzare il ciclo esterno (for i = 0), che iterava sequenzialmente nella versione seriale.
+In particolare:
+- La clausola reduction(max : maxDist) viene utilizzata per garantire che la variabile maxDist sia aggiornata correttamente in parallelo.
+- La clausola schedule(static) viene utilizzata per distribuire equamente il lavoro tra i thread, utilizziamo static invece che dynamic per evitare overhead di sincronizzazione e perche i dati sono regolari.
+- La variabile i è dichiarata privata per garantire che ogni thread abbia la propria copia locale.
+*/    
 #pragma omp parallel for reduction(max : maxDist) schedule(static)
     for (int i = 0; i < K; i++) {
       distCentroids[i] = euclideanDistance(&centroids[i * samples],
@@ -356,7 +416,7 @@ int main(int argc, char *argv[]) {
            changes, sqrt(maxDist));
 
   } while ((changes > minChanges) && (it < maxIterations) &&
-           (sqrt(maxDist) > maxThreshold));
+           (sqrt(maxDist) > maxThreshold)); // Clausola di arrest
 
   /*
    *
