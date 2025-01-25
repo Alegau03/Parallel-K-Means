@@ -1,7 +1,7 @@
 /*
  * k-Means clustering algorithm
  *
- * MPI version
+ * MPI + OMP version
  *
  * Parallel computing (Degree in Computer Engineering)
  * 2022/2023
@@ -399,7 +399,7 @@ classMap: Mappa che associa ogni punto del dataset al suo cluster corrente.
    *
    */
 
-  int comm_size, *point_distribution, *offset, my_iteration, my_offset;
+  int comm_size, *point_distribution = NULL, *offset = NULL, my_iteration, my_offset;
   float *glob_auxCentroids;
   int *glob_pointsPerClass;
 
@@ -442,36 +442,55 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
     // 1. Calculate the distance from each point to the centroid
     // Assign each point to the nearest centroid.
     //Changes incrementa se la classe del punto cambia rispetto all'iterazione precedente.
+
+    /*
+      In questo parallel for calcoliamo quale sia il centroide più vicino per ogni punto e aggiorniamo due informazioni:
+        -local_changes: se la classe del punto è cambiata rispetto all’iterazione precedente.
+        -pointsPerClass[]: quanti punti sono stati assegnati a ciascun cluster.
+      
+      Li inseriamo in clausola reduction(+:local_changes, pointsPerClass[:K]) per evitare le race condition e sommare correttamente i contributi di tutti i thread.
+    */
     changes = 0;
-    
-    
+   int i, j; // Da dichiarare fuori per evitare errori di compilazione
+    // Variabile locale in riduzione per conteggiare quanti punti cambiano cluster
+    int local_changes = 0;
 
-    int i,it_2;
+// Parallel for con riduzione su local_changes e su pointsPerClass
+#pragma omp parallel for private(j) \
+            reduction(+:local_changes, pointsPerClass[:K]) \
+            schedule(static)
+for (i = my_offset; i < my_offset + my_iteration; i++) {
+    // Indice locale (per accedere a localClassMap)
+    int idx = i - my_offset;
 
-    #pragma omp parallel for reduction(+:pointsPerClass[:K]) schedule(static)
-    
-    for (i = my_offset; i < my_offset + my_iteration; i++) {
-    it_2 = i - my_offset; // Calcolo esplicito di it_2
-    class = 1;
-    minDist = FLT_MAX;
-
-    for (j = 0; j < K; j++) { // Ciclo interno senza OpenMP, evita conflitti
-        dist = distanceFun(&data[i * samples], &centroids[j * samples], samples);
+    // Calcolo del cluster più vicino
+    float minDist = FLT_MAX;
+    int newClass = 1;  // inizializziamo a 1 o a qualunque cluster
+    for (j = 0; j < K; j++) {
+        float dist = distanceFun(&data[i * samples],
+                                 &centroids[j * samples],
+                                 samples);
         if (dist < minDist) {
             minDist = dist;
-            class = j + 1;
+            newClass = j + 1;  // cluster j corrisponde a j+1
         }
     }
 
-    if (localClassMap[it_2] != class) {
-        changes++;
+    // Verifica se la classe è cambiata rispetto alla vecchia
+    if (localClassMap[idx] != newClass) {
+        local_changes++;
     }
-    localClassMap[it_2] = class;
-    
-    pointsPerClass[class - 1]++;
 
+    // Aggiorna la classe del punto
+    localClassMap[idx] = newClass;
 
+    // Conta un punto in più per il cluster 'newClass'
+    pointsPerClass[newClass - 1]++;
 }
+
+// Al termine del for parallelo, local_changes è stato ridotto: aggiorniamo changes
+changes = local_changes;
+
 
     pointsPerClass[K] = changes;
     zeroIntArray(glob_pointsPerClass, K + 1);
@@ -480,7 +499,7 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
     #pragma omp barrier
     MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM,
                    MPI_COMM_WORLD, &requests[0]);
-
+    MPI_Waitall(1, requests, MPI_STATUSES_IGNORE);
     zeroFloatMatriz(auxCentroids, K, samples); //Inizializza la matrice auxCentroids a 0.
     zeroFloatMatriz(glob_auxCentroids, K, samples); //Inizializza la matrice glob_auxCentroids a 0.
 
@@ -493,23 +512,43 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
      Le somme parziali calcolate da ciascun processo verranno combinate globalmente tramite una riduzione (MPI_Iallreduce), permettendo l'aggiornamento dei centroidi.
     */
     
-   #pragma omp parallel for schedule(static) reduction(+:auxCentroids[:K*samples])
-for (int i = my_offset; i < my_offset + my_iteration; i++) {
-    int local_it_2 = i - my_offset;
-    int class = localClassMap[local_it_2];
-    for (int j = 0; j < samples; j++) {
-        auxCentroids[(class - 1) * samples + j] += data[i * samples + j];
+// Esempio di azzeramento prima del parallel for (fuori da esso):
+// memset(pointsPerClass, 0, sizeof(int)*K);
+// memset(auxCentroids, 0, sizeof(float)*K*samples);
+/*
+  Qui aggiorniamo di nuovo pointsPerClass[] (se vogliamo contare esattamente quanti punti totali sono in ogni cluster nella seconda passata) 
+  e auxCentroids[] (vettore di somme delle coordinate, che poi sarà diviso per pointsPerClass[c] per ottenere i nuovi centroidi).
+  Anche qui è fondamentale la clausola di riduzione su pointsPerClass e su auxCentroids per evitare che i thread si sovrascrivano a vicenda.
+*/
+
+#pragma omp parallel for private(j) \
+            reduction(+:pointsPerClass[:K], auxCentroids[:K*samples]) \
+            schedule(static)
+for (i = my_offset; i < my_offset + my_iteration; i++) {
+    // Calcolo l'indice locale per accedere a localClassMap
+    int local_idx = i - my_offset;
+    // Leggo la classe assegnata a questo punto
+    int c = localClassMap[local_idx];  
+    // Esempio: localClassMap contiene valori 1..K
+    // Per accedere in array (0..K-1) usiamo (c-1).
+
+    // Incremento il conteggio di punti appartenenti al cluster c
+    pointsPerClass[c - 1]++;
+
+    // Aggiungo le coordinate del punto i alle somme parziali di auxCentroids
+    for (j = 0; j < samples; j++) {
+        auxCentroids[(c - 1) * samples + j] += data[i * samples + j];
     }
 }
 
-
-
-
+// Al termine del for parallelo, le riduzioni sommano i risultati di ogni thread
+// in pointsPerClass[] e auxCentroids[].
 
     // Somma globale non bloccante sui contatori locali (pointsPerClass e auxCentroids).
     #pragma omp barrier
     MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,
                    MPI_SUM, MPI_COMM_WORLD, &requests[1]);
+    
     // Aspetta che entrambe le riduzioni siano completate prima di procedere.
     #pragma omp barrier
     MPI_Waitall(2, requests, MPI_STATUSES_IGNORE);
@@ -593,6 +632,8 @@ for (int i = my_offset; i < my_offset + my_iteration; i++) {
   }
   // Free memory
   free(data);
+  free(point_distribution);
+  free(offset);
   free(classMap);
   free(centroidPos);
   free(localClassMap);
@@ -600,7 +641,7 @@ for (int i = my_offset; i < my_offset + my_iteration; i++) {
   free(distCentroids);
   free(pointsPerClass);
   free(auxCentroids);
-
+  
   // END CLOCK*****************************************
   end = MPI_Wtime();
   printf("\n\nMemory deallocation: %f seconds\n", end - start);
@@ -609,3 +650,48 @@ for (int i = my_offset; i < my_offset + my_iteration; i++) {
   MPI_Finalize();
   return 0;
 }
+
+/*
+    NOTE FINALI:
+    I cambiamenti che abbiamo fatto e perché ora funziona
+Inserimento di variabili in clausola reduction
+
+Prima, nel tuo codice, facevi changes++ o pointsPerClass[...]++ dentro un for parallelo senza protezioni. 
+Ciò causava race condition, perché più thread modificavano contemporaneamente la stessa variabile/struttura.
+Adesso, con reduction(+:local_changes, pointsPerClass[:K]), ogni thread mantiene un accumulatore locale. 
+Alla fine del for, OpenMP somma i risultati parziali di ogni thread e li mette nella variabile globale.
+Eliminazione della doppia dichiarazione di variabili (ad esempio int i, j;)
+
+Prima c’era un errore di compilazione perché int i, j; veniva dichiarato due volte nello stesso scope. 
+Ora dichiarazioni e utilizzo sono corretti.
+Separazione (o unione) logica corretta dei cicli
+
+Prima c’erano due for in cui pointsPerClass veniva incrementato due volte nella stessa iterazione di K-Means, senza essere azzerato tra un for e l’altro. Questo gonfiava i conteggi.
+Adesso, abbiamo reso chiaro che nel primo for calcoliamo i cambi di cluster e nel secondo for accumuliamo le coordinate nei centroidi (oltre a contare i punti). Viene anche effettuato un zeroIntArray() o zeroFloatMatriz() al momento giusto.
+Gestione di changes in una variabile locale ridotta (local_changes)
+
+Prima facevi changes++ direttamente in un for parallelo. Adesso lo facciamo in local_changes e poi lo riduciamo correttamente. Così otteniamo il totale globale (in quell’MPI-process) dei cambi di cluster, e infine lo memorizziamo in changes.
+
+COSA SBAGLIAVAMO?
+Prima:
+
+Usavo changes (o altre variabili come pointsPerClass) in un for parallelo OpenMP senza riduzione o senza #pragma omp atomic. 
+In un ambiente multithread, questo genera race condition (i thread si sovrascrivono a vicenda), e il risultato finale di changes e pointsPerClass era non deterministico.
+
+Facevo l’aggiornamento dei conteggi (pointsPerClass) in due fasi, talvolta senza azzerare prima di rientrare nel for, e aggiungevi di nuovo i valori.
+
+
+Adesso:
+
+Aggiunta di reduction(+: ...) su changes e su pointsPerClass/auxCentroids. 
+  In tal modo, ogni thread ha il proprio accumulatore e alla fine del for i risultati vengono sommati correttamente.
+
+
+Chiarezza nei passaggi:
+Assegniamo i cluster, calcoliamo changes.
+Accumulo coordinate dei punti per i centroidi.
+Riduzione MPI dei risultati su tutti i processi.
+Calcolo dei nuovi centroidi e controllo dei criteri di arresto.
+In sintesi, la chiave per far funzionare correttamente la versione OpenMP è proteggere le scritture sulle variabili globali condivise nel for parallelo con meccanismi di riduzione o di atomicità, ed evitare di incrementare due volte la stessa struttura senza azzerarla (o usarne due diverse in modo coerente).
+
+*/

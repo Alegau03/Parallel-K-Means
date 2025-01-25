@@ -1,101 +1,185 @@
 
-	Data file: test_files/input2D.inp 
-	Points: 5000
-	Dimensions: 2
+	Data file: test_files/input100D2.inp 
+	Points: 100000
+	Dimensions: 100
 	Number of clusters: 6
 	Maximum number of iterations: 300
-	Minimum number of changes: 50 [1% of 5000 points]
+	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.001533 seconds
+Memory allocation: 0.243810 seconds
 
-	Data file: test_files/input2D.inp 
-	Points: 5000
-	Dimensions: 2
+	Data file: test_files/input100D2.inp 
+	Points: 100000
+	Dimensions: 100
 	Number of clusters: 6
 	Maximum number of iterations: 300
-	Minimum number of changes: 50 [1% of 5000 points]
+	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.001533 seconds
+Memory allocation: 0.243810 seconds
 
-	Data file: test_files/input2D.inp 
-	Points: 5000
-	Dimensions: 2
+	Data file: test_files/input100D2.inp 
+	Points: 100000
+	Dimensions: 100
 	Number of clusters: 6
 	Maximum number of iterations: 300
-	Minimum number of changes: 50 [1% of 5000 points]
+	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.001533 seconds
+Memory allocation: 0.243801 seconds
 
-	Data file: test_files/input2D.inp 
-	Points: 5000
-	Dimensions: 2
+	Data file: test_files/input100D2.inp 
+	Points: 100000
+	Dimensions: 100
 	Number of clusters: 6
 	Maximum number of iterations: 300
-	Minimum number of changes: 50 [1% of 5000 points]
+	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.001553 seconds
+Memory allocation: 0.243873 seconds
 
-[1] Cluster changes: 5000	Max. centroid distance: 207868.955643
-[2] Cluster changes: 665	Max. centroid distance: 219420.282891
-[3] Cluster changes: 380	Max. centroid distance: 222888.956604
-[4] Cluster changes: 291	Max. centroid distance: 227321.963884
-[5] Cluster changes: 210	Max. centroid distance: 228303.636134
-[6] Cluster changes: 132	Max. centroid distance: 229198.091720
-[7] Cluster changes: 78	Max. centroid distance: 229467.222932
-[8] Cluster changes: 66	Max. centroid distance: 228295.401057
+[1] Cluster changes: 100000	Max. centroid distance: 460401.854662
+[2] Cluster changes: 15536	Max. centroid distance: 388075.524526
+[3] Cluster changes: 7252	Max. centroid distance: 362259.923127
+[4] Cluster changes: 3991	Max. centroid distance: 351328.639766
+[5] Cluster changes: 2709	Max. centroid distance: 345540.984591
+[6] Cluster changes: 2327	Max. centroid distance: 344826.999221
+[7] Cluster changes: 2252	Max. centroid distance: 344118.495684
+[8] Cluster changes: 2298	Max. centroid distance: 344393.330481
+[9] Cluster changes: 2360	Max. centroid distance: 344118.198112
+[10] Cluster changes: 2226	Max. centroid distance: 343923.590398
+[11] Cluster changes: 2233	Max. centroid distance: 344675.337835
+[12] Cluster changes: 2286	Max. centroid distance: 346674.052516
+[13] Cluster changes: 2385	Max. centroid distance: 347389.488569
+[14] Cluster changes: 2525	Max. centroid distance: 350238.244308
+[15] Cluster changes: 2790	Max. centroid distance: 353751.546168
+[16] Cluster changes: 3099	Max. centroid distance: 355971.900734
+[17] Cluster changes: 3544	Max. centroid distance: 360340.597635
+[18] Cluster changes: 4102	Max. centroid distance: 364230.269494
+[19] Cluster changes: 4627	Max. centroid distance: 372159.796389
+[20] Cluster changes: 5235	Max. centroid distance: 379893.821966
+[21] Cluster changes: 5786	Max. centroid distance: 386921.049931
+[22] Cluster changes: 5921	Max. centroid distance: 394295.248077
+[23] Cluster changes: 5426	Max. centroid distance: 403422.577296
+[24] Cluster changes: 4238	Max. centroid distance: 410811.229136
+[25] Cluster changes: 2976	Max. centroid distance: 414709.017139
+[26] Cluster changes: 2121	Max. centroid distance: 415643.416404
+[27] Cluster changes: 1554	Max. centroid distance: 416729.826262
+[28] Cluster changes: 1162	Max. centroid distance: 416577.528957
+[29] Cluster changes: 1021	Max. centroid distance: 417214.188675
 
-[1] Cluster changes: 5000	Max. centroid distance: 216221.696007
-[2] Cluster changes: 665	Max. centroid distance: 207792.260568
-[3] Cluster changes: 380	Max. centroid distance: 208928.409251
-[4] Cluster changes: 291	Max. centroid distance: 213549.050403
-[5] Cluster changes: 210	Max. centroid distance: 214296.161123
-[6] Cluster changes: 132	Max. centroid distance: 214131.605140
-[7] Cluster changes: 78	Max. centroid distance: 215287.552747
-[8] Cluster changes: 66	Max. centroid distance: 215895.118833
-
-[1] Cluster changes: 5000	Max. centroid distance: 219474.607552
-[2] Cluster changes: 665	Max. centroid distance: 219740.922070
-[3] Cluster changes: 380	Max. centroid distance: 221417.376879
-[4] Cluster changes: 291	Max. centroid distance: 218546.009508
-[5] Cluster changes: 210	Max. centroid distance: 218988.529818
-[6] Cluster changes: 132	Max. centroid distance: 222389.713719
-[7] Cluster changes: 78	Max. centroid distance: 221139.291778
-[8] Cluster changes: 66	Max. centroid distance: 220613.764938
-
-[1] Cluster changes: 5000	Max. centroid distance: 200740.802748
-[2] Cluster changes: 665	Max. centroid distance: 195830.546177
-[3] Cluster changes: 380	Max. centroid distance: 203444.967301
-[4] Cluster changes: 291	Max. centroid distance: 200761.165328
-[5] Cluster changes: 210	Max. centroid distance: 201457.331105
-[6] Cluster changes: 132	Max. centroid distance: 201567.469121
-[7] Cluster changes: 78	Max. centroid distance: 202770.585007
-[8] Cluster changes: 66	Max. centroid distance: 203157.916902
-[9] Cluster changes: 44	Max. centroid distance: 215599.158737
+[1] Cluster changes: 100000	Max. centroid distance: 465604.200668
+[2] Cluster changes: 15536	Max. centroid distance: 390016.357072
+[3] Cluster changes: 7252	Max. centroid distance: 361960.123682
+[4] Cluster changes: 3991	Max. centroid distance: 350392.372520
+[5] Cluster changes: 2709	Max. centroid distance: 346447.210455
+[6] Cluster changes: 2327	Max. centroid distance: 343860.832873
+[7] Cluster changes: 2252	Max. centroid distance: 344166.484737
+[8] Cluster changes: 2298	Max. centroid distance: 344414.690325
+[9] Cluster changes: 2360	Max. centroid distance: 344046.963864
+[10] Cluster changes: 2226	Max. centroid distance: 345398.815516
+[11] Cluster changes: 2233	Max. centroid distance: 346246.873130
+[12] Cluster changes: 2286	Max. centroid distance: 345359.252443
+[13] Cluster changes: 2385	Max. centroid distance: 345220.318846
+[14] Cluster changes: 2525	Max. centroid distance: 345212.440471
+[15] Cluster changes: 2790	Max. centroid distance: 345001.247256
+[16] Cluster changes: 3099	Max. centroid distance: 348377.767190
+[17] Cluster changes: 3544	Max. centroid distance: 351322.064254
+[18] Cluster changes: 4102	Max. centroid distance: 356086.705846
+[19] Cluster changes: 4627	Max. centroid distance: 361420.982235
+[20] Cluster changes: 5235	Max. centroid distance: 366743.588770
+[21] Cluster changes: 5786	Max. centroid distance: 375109.214091
+[22] Cluster changes: 5921	Max. centroid distance: 383129.081705
+[23] Cluster changes: 5426	Max. centroid distance: 390237.972934
+[24] Cluster changes: 4238	Max. centroid distance: 396355.963164
+[25] Cluster changes: 2976	Max. centroid distance: 400293.677792
+[26] Cluster changes: 2121	Max. centroid distance: 402142.593138
+[27] Cluster changes: 1554	Max. centroid distance: 402900.734653
+[28] Cluster changes: 1162	Max. centroid distance: 403792.834013
+[29] Cluster changes: 1021	Max. centroid distance: 404444.636429
+[30] Cluster changes: 924	Max. centroid distance: 405264.009791
 
 Termination condition:
-[9] Cluster changes: 44	Max. centroid distance: 202619.239363
+
+[1] Cluster changes: 100000	Max. centroid distance: 462846.371679
+[2] Cluster changes: 15536	Max. centroid distance: 389357.485424
+[3] Cluster changes: 7252	Max. centroid distance: 362847.106798
+[4] Cluster changes: 3991	Max. centroid distance: 351965.275378
+[5] Cluster changes: 2709	Max. centroid distance: 345632.496250
+[6] Cluster changes: 2327	Max. centroid distance: 343273.448924
+[7] Cluster changes: 2252	Max. centroid distance: 342633.358983
+[8] Cluster changes: 2298	Max. centroid distance: 343567.093558
+[9] Cluster changes: 2360	Max. centroid distance: 344697.274350
+[10] Cluster changes: 2226	Max. centroid distance: 344860.637267
+[11] Cluster changes: 2233	Max. centroid distance: 345524.187240
+[12] Cluster changes: 2286	Max. centroid distance: 346476.494464
+[13] Cluster changes: 2385	Max. centroid distance: 347329.786618
+[14] Cluster changes: 2525	Max. centroid distance: 347659.004244
+[15] Cluster changes: 2790	Max. centroid distance: 351084.692141
+[16] Cluster changes: 3099	Max. centroid distance: 354
+[1] Cluster changes: 100000	Max. centroid distance: 462645.389282
+[2] Cluster changes: 15536	Max. centroid distance: 393928.105197
+[3] Cluster changes: 7252	Max. centroid distance: 367184.961784
+[4] Cluster changes: 3991	Max. centroid distance: 355632.042831
+[5] Cluster changes: 2709	Max. centroid distance: 349766.317967
+[6] Cluster changes: 2327	Max. centroid distance: 347956.434606
+[7] Cluster changes: 2252	Max. centroid distance: 347090.522095
+[8] Cluster changes: 2298	Max. centroid distance: 347602.777618
+[9] Cluster changes: 2360	Max. centroid distance: 346847.419872
+[10] Cluster changes: 2226	Max. centroid distance: 347849.025826
+[11] Cluster changes: 2233	Max. centroid distance: 349195.624440
+[12] Cluster changes: 2286	Max. centroid distance: 349527.127600
+[13] Cluster changes: 2385	Max. centroid distance: 349135.668209
+[14] Cluster changes: 2525	Max. centroid distance: 350733.500470
+[15] Cluster changes: 2790	Max. centroid distance: 351308.143350
+[16] Cluster changes: 3099	Max. centroid distance: 351601.308785
+[17] Cluster changes: 3544	Max. centroid distance: 358299.723115
+[18] Cluster changes: 4102	Max. centroid distance: 362661.962009
+[19] Cluster changes: 4627	Max. centroid distance: 368629.244288
+[20] Cluster changes: 5235	Max. centroid distance: 376149.730187
+[21] Cluster changes: 5786	Max. centroid distance: 383839.753230
+[22] Cluster changes: 5921	Max. centroid distance: 392382.282821
+[23] Cluster changes: 5426	Max. centroid distance: 399801.663468
+[24] Cluster changes: 4238	Max. centroid distance: 407693.824569
+[25] Cluster changes: 2976	Max. centroid distance: 411833.152391
+[26] Cluster changes: 2121	Max. centroid distance: 413498.962978
+[27] Cluster changes: 1554	Max. centroid distance: 414516.414227
+[28] Cluster changes: 1162	Max. centroid distance: 414482.697540
+[29] Cluster changes: 1021	Max. centroid distance: 414730.943066
+Minimum number of changes reached: 924 [1000]
+
+Memory deallocation: 0.000492 seconds
+[30] Cluster changes: 924	Max. centroid distance: 414763.395260
+Computation: 0.079844 seconds
 
 Termination condition:
-Minimum number of changes reached: 44 [50]
-
-Memory deallocation: 0.000003 seconds
-[9] Cluster changes: 44	Max. centroid distance: 228936.677498
+510.886363
+[17] Cluster changes: 3544	Max. centroid distance: 353506.014659
+[18] Cluster changes: 4102	Max. centroid distance: 361498.525939
+[19] Cluster changes: 4627	Max. centroid distance: 367975.267343
+[20] Cluster changes: 5235	Max. centroid distance: 373654.428926
+[21] Cluster changes: 5786	Max. centroid distance: 382087.761395
+[22] Cluster changes: 5921	Max. centroid distance: 390345.396837
+[23] Cluster changes: 5426	Max. centroid distance: 398708.473670
+[24] Cluster changes: 4238	Max. centroid distance: 403980.897133
+[25] Cluster changes: 2976	Max. centroid distance: 406650.560870
+[26] Cluster changes: 2121	Max. centroid distance: 408654.448609
+[27] Cluster changes: 1554	Max. centroid distance: 410725.254349
+[28] Cluster changes: 1162	Max. centroid distance: 411732.269981
+[29] Cluster changes: 1021	Max. centroid distance: 411120.856508
+[30] Cluster changes: 924	Max. centroid distance: 411847.633185
 
 Termination condition:
-Minimum number of changes reached: 44 [50]
-
-Memory deallocation: 0.000004 seconds
-Minimum number of changes reached: 44 [50]
-
-Memory deallocation: 0.000005 seconds
-[9] Cluster changes: 44	Max. centroid distance: 219944.955441
-Computation: 0.000915 seconds
+[30] Cluster changes: 924	Max. centroid distance: 417422.464024
 
 Termination condition:
-Minimum number of changes reached: 44 [50]
+Minimum number of changes reached: 924 [1000]
 
-Memory deallocation: 0.000394 seconds
+Memory deallocation: 0.000467 seconds
+Minimum number of changes reached: 924 [1000]
+
+Memory deallocation: 0.000471 seconds
+Minimum number of changes reached: 924 [1000]
+
+Memory deallocation: 0.004925 seconds

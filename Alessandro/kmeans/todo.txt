@@ -1,7 +1,9 @@
 ⁠- ⁠Commentare OMP - FATTO
 - Ottimizza OMP - FATTO
 - RUN OMP OPT - FATTO
-- Prova unrolling su mpi
+- Prova unrolling su mpi - FATTO
+- Commenta versione doppia
+- Controlla commenti
 -⁠ ⁠Fare grafici
     - MPI OPT vs MPI No OPT - FATTO
     - Vari processi MPI - FATTO
@@ -11,5 +13,6 @@
 -⁠ ⁠Scrivere relazione su:
     - mpi - FATTO
     - omp - FATTO
-    - mpi+omp 
+    - mpi+omp  - FATTO
     - problema avuto con 100D2
+    - problemi avuti con MPI+OMP (alla fine del file ibrido)
