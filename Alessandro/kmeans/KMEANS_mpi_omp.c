@@ -443,8 +443,13 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
     // Assign each point to the nearest centroid.
     //Changes incrementa se la classe del punto cambia rispetto all'iterazione precedente.
     changes = 0;
-    int i, it_2; // Dichiarazione fuori dal ciclo
-    #pragma omp parallel for reduction(+:changes) private(class, minDist) schedule(static)
+    
+    
+
+    int i,it_2;
+
+    #pragma omp parallel for reduction(+:pointsPerClass[:K]) schedule(static)
+    
     for (i = my_offset; i < my_offset + my_iteration; i++) {
     it_2 = i - my_offset; // Calcolo esplicito di it_2
     class = 1;
@@ -462,8 +467,10 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
         changes++;
     }
     localClassMap[it_2] = class;
-    #pragma omp atomic
+    
     pointsPerClass[class - 1]++;
+
+
 }
 
     pointsPerClass[K] = changes;
@@ -485,16 +492,19 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
      Prepara i dati per calcolare i nuovi centroidi.
      Le somme parziali calcolate da ciascun processo verranno combinate globalmente tramite una riduzione (MPI_Iallreduce), permettendo l'aggiornamento dei centroidi.
     */
-    #pragma omp parallel for schedule(static)
-    for (i = my_offset; i < my_offset + my_iteration; i++) {
-    int local_it_2 = i - my_offset; // Evita conflitti riutilizzando una variabile locale
-    class = localClassMap[local_it_2];
-
-    for (j = 0; j < samples; j++) {
-        #pragma omp atomic
+    
+   #pragma omp parallel for schedule(static) reduction(+:auxCentroids[:K*samples])
+for (int i = my_offset; i < my_offset + my_iteration; i++) {
+    int local_it_2 = i - my_offset;
+    int class = localClassMap[local_it_2];
+    for (int j = 0; j < samples; j++) {
         auxCentroids[(class - 1) * samples + j] += data[i * samples + j];
     }
 }
+
+
+
+
     // Somma globale non bloccante sui contatori locali (pointsPerClass e auxCentroids).
     #pragma omp barrier
     MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,

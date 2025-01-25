@@ -7,7 +7,7 @@
 	Minimum number of changes: 50 [1% of 5000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.000934 seconds
+Memory allocation: 0.000741 seconds
 
 	Data file: test_files/input2D.inp 
 	Points: 5000
@@ -17,7 +17,7 @@ Memory allocation: 0.000934 seconds
 	Minimum number of changes: 50 [1% of 5000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.000993 seconds
+Memory allocation: 0.000726 seconds
 
 	Data file: test_files/input2D.inp 
 	Points: 5000
@@ -27,7 +27,7 @@ Memory allocation: 0.000993 seconds
 	Minimum number of changes: 50 [1% of 5000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.000993 seconds
+Memory allocation: 0.000727 seconds
 
 	Data file: test_files/input2D.inp 
 	Points: 5000
@@ -37,37 +37,4 @@ Memory allocation: 0.000993 seconds
 	Minimum number of changes: 50 [1% of 5000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.001211 seconds
-
-[1] Cluster changes: 1156066932	Max. centroid distance: 215850.292416
-[2] Cluster changes: -989547376	Max. centroid distance: 207904.736339
-
-Termination condition:
-Minimum number of changes reached: -989547376 [50]
-
-Memory deallocation: 0.000004 seconds
-
-[1] Cluster changes: 1156066932	Max. centroid distance: 198743.630157
-[2] Cluster changes: -989547376	Max. centroid distance: 196733.470381
-Computation: 0.000948 seconds
-
-Termination condition:
-
-[1] Cluster changes: 1156066932	Max. centroid distance: 171000.933986
-[2] Cluster changes: -989547376	Max. centroid distance: 168604.340822
-
-Termination condition:
-Minimum number of changes reached: -989547376 [50]
-
-Memory deallocation: 0.000005 seconds
-
-[1] Cluster changes: 1156066932	Max. centroid distance: 137008.395188
-[2] Cluster changes: -989547376	Max. centroid distance: 185863.845564
-
-Termination condition:
-Minimum number of changes reached: -989547376 [50]
-
-Memory deallocation: 0.000006 seconds
-Minimum number of changes reached: -989547376 [50]
-
-Memory deallocation: 0.000575 seconds
+Memory allocation: 0.000806 seconds
