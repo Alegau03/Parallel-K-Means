@@ -505,11 +505,13 @@ for (int i = my_offset; i < my_offset + my_iteration; i++) {
 
 
 
+
     // Somma globale non bloccante sui contatori locali (pointsPerClass e auxCentroids).
     #pragma omp barrier
     MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,
                    MPI_SUM, MPI_COMM_WORLD, &requests[1]);
     // Aspetta che entrambe le riduzioni siano completate prima di procedere.
+    #pragma omp barrier
     MPI_Waitall(2, requests, MPI_STATUSES_IGNORE);
 
 /*
@@ -543,6 +545,7 @@ for (int i = my_offset; i < my_offset + my_iteration; i++) {
            (sqrt(maxDist) > maxThreshold));
 
   // Raccoglie tutte le classificazioni locali nei processi e le combina nel processo con rank 0.
+  #pragma omp barrier
   MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
               point_distribution, offset, MPI_INT, 0, MPI_COMM_WORLD);
   /*
