@@ -17,5 +17,5 @@
     - problema avuto con 100D2
     - problemi avuti con MPI+OMP (alla fine del file ibrido) - FATTO
 - Tabella con run diverse - FATTO
-- Perff  
+- Perff  - FATTO
 - Run francesco macro
