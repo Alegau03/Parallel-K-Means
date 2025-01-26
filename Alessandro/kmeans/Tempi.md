@@ -148,23 +148,23 @@ CON OTTIMIZZAZIONE SULLA DISTANZA
 
 ## MPI + OPENMP
 ### INPUT 2D
-4 Processi:
-8 Processi:
+4 Processi: 0.005996
+8 Processi: 0.012003
 ### INPUT 2D2
-4 Processi:
-8 Processi:
+4 Processi: 0.000398
+8 Processi: 0.003152
 ### INPUT 10D
-4 Processi:
-8 Processi:
+4 Processi: 0.003921
+8 Processi: 0.009488
 ### INPUT 20D
-4 Processi:
-8 Processi:
+4 Processi: 0.009482
+8 Processi: 0.030457
 ### INPUT 100D
-4 Processi:
-8 Processi:
+4 Processi: 0.013373
+8 Processi: 0.045156
 ### INPUT 100D2
-4 Processi:
-8 Processi:
+4 Processi: 0.079466
+8 Processi: 0.143478
 
 ## CUDA
 ### INPUT 2D

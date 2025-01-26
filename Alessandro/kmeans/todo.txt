@@ -2,14 +2,14 @@
 - Ottimizza OMP - FATTO
 - RUN OMP OPT - FATTO
 - Prova unrolling su mpi - FATTO
-- Commenta versione doppia
-- Controlla commenti
+- Commenta versione doppia - FATTO
+- Controlla commenti - FATTO
 -⁠ ⁠Fare grafici
     - MPI OPT vs MPI No OPT - FATTO
     - Vari processi MPI - FATTO
     - MPI vs OMP vs Mpi+OMP con 4 processi
     - Completo
--⁠ ⁠Versione MPI+OMP
+-⁠ ⁠Versione MPI+OMP - FATTO
 -⁠ ⁠Scrivere relazione su:
     - mpi - FATTO
     - omp - FATTO
