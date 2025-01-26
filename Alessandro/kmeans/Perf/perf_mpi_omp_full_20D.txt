@@ -1,0 +1,31 @@
+# started on Sun Jan 26 19:23:25 2025
+
+
+ Performance counter stats for 'mpirun -np 4 ./kmeans_mpi_omp test_files/input20D.inp 6 300 1 0.0001 output_file.txt':
+
+          2.262,25 msec task-clock                       #    2,623 CPUs utilized             
+     7.412.160.269      cycles                           #    3,276 GHz                         (73,55%)
+     8.226.509.937      instructions                     #    1,11  insn per cycle            
+                                                  #    0,51  stalled cycles per insn     (81,86%)
+     1.855.997.439      branches                         #  820,421 M/sec                       (80,66%)
+         6.483.558      branch-misses                    #    0,35% of all branches             (80,55%)
+         8.448.833      cache-references                 #    3,735 M/sec                       (81,09%)
+         1.540.023      cache-misses                     #   18,23% of all cache refs           (81,73%)
+     2.262.454.689      L1-dcache-loads                  #    1,000 G/sec                       (82,56%)
+        11.031.360      L1-dcache-load-misses            #    0,49% of all L1-dcache accesses   (82,49%)
+   <not supported>      L1-icache-loads                                                       
+        12.406.986      L1-icache-load-misses                                                   (82,71%)
+         4.153.032      LLC-loads                        #    1,836 M/sec                       (83,16%)
+   <not supported>      LLC-load-misses                                                       
+             6.923      context-switches                 #    3,060 K/sec                     
+               153      cpu-migrations                   #   67,632 /sec                      
+            11.885      page-faults                      #    5,254 K/sec                     
+     4.186.480.748      stalled-cycles-frontend          #   56,48% frontend cycles idle        (73,77%)
+   <not supported>      stalled-cycles-backend                                                
+
+       0,862401702 seconds time elapsed
+
+       2,111938000 seconds user
+       0,152912000 seconds sys
+
+

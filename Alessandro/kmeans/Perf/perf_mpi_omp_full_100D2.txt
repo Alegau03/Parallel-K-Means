@@ -1,0 +1,31 @@
+# started on Sun Jan 26 19:21:49 2025
+
+
+ Performance counter stats for 'mpirun -np 4 ./kmeans_mpi_omp test_files/input100D2.inp 6 300 1 0.0001 output_file.txt':
+
+          9.139,91 msec task-clock                       #    3,480 CPUs utilized             
+    30.629.914.399      cycles                           #    3,351 GHz                         (73,01%)
+    53.875.094.613      instructions                     #    1,76  insn per cycle            
+                                                  #    0,22  stalled cycles per insn     (82,16%)
+    10.526.777.057      branches                         #    1,152 G/sec                       (82,16%)
+        58.079.827      branch-misses                    #    0,55% of all branches             (81,88%)
+        26.387.836      cache-references                 #    2,887 M/sec                       (81,65%)
+         9.677.018      cache-misses                     #   36,67% of all cache refs           (81,75%)
+    13.073.544.824      L1-dcache-loads                  #    1,430 G/sec                       (81,83%)
+        72.717.488      L1-dcache-load-misses            #    0,56% of all L1-dcache accesses   (82,02%)
+   <not supported>      L1-icache-loads                                                       
+        24.682.155      L1-icache-load-misses                                                   (81,78%)
+        25.132.522      LLC-loads                        #    2,750 M/sec                       (81,73%)
+   <not supported>      LLC-load-misses                                                       
+             9.218      context-switches                 #    1,009 K/sec                     
+               204      cpu-migrations                   #   22,320 /sec                      
+            50.315      page-faults                      #    5,505 K/sec                     
+    12.100.268.631      stalled-cycles-frontend          #   39,50% frontend cycles idle        (72,76%)
+   <not supported>      stalled-cycles-backend                                                
+
+       2,626256476 seconds time elapsed
+
+       8,840320000 seconds user
+       0,300860000 seconds sys
+
+

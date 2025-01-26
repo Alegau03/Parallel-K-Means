@@ -1,0 +1,31 @@
+# started on Sun Jan 26 19:21:59 2025
+
+
+ Performance counter stats for 'mpirun -np 4 ./kmeans_mpi_omp test_files/input100D.inp 6 300 1 0.0001 output_file.txt':
+
+          3.035,45 msec task-clock                       #    2,867 CPUs utilized             
+    10.069.127.057      cycles                           #    3,317 GHz                         (71,62%)
+    11.015.220.507      instructions                     #    1,09  insn per cycle            
+                                                  #    0,51  stalled cycles per insn     (81,20%)
+     2.462.517.407      branches                         #  811,253 M/sec                       (81,06%)
+         9.925.074      branch-misses                    #    0,40% of all branches             (81,77%)
+        11.317.043      cache-references                 #    3,728 M/sec                       (82,61%)
+         2.419.190      cache-misses                     #   21,38% of all cache refs           (81,96%)
+     2.747.711.952      L1-dcache-loads                  #  905,208 M/sec                       (81,79%)
+        15.881.864      L1-dcache-load-misses            #    0,58% of all L1-dcache accesses   (82,56%)
+   <not supported>      L1-icache-loads                                                       
+        14.155.021      L1-icache-load-misses                                                   (82,92%)
+         5.298.105      LLC-loads                        #    1,745 M/sec                       (83,16%)
+   <not supported>      LLC-load-misses                                                       
+             7.258      context-switches                 #    2,391 K/sec                     
+               128      cpu-migrations                   #   42,168 /sec                      
+            14.995      page-faults                      #    4,940 K/sec                     
+     5.628.467.879      stalled-cycles-frontend          #   55,90% frontend cycles idle        (72,42%)
+   <not supported>      stalled-cycles-backend                                                
+
+       1,058748307 seconds time elapsed
+
+       2,858799000 seconds user
+       0,178817000 seconds sys
+
+

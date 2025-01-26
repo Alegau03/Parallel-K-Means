@@ -1,0 +1,28 @@
+# started on Sun Jan 26 19:16:57 2025
+
+
+ Performance counter stats for 'mpirun -np 4 ./kmeans_mpi test_files/input2D2.inp 6 300 1 0.0001 output_file.txt':
+
+            251,41 msec task-clock                       #    0,688 CPUs utilized             
+       612.710.038      cycles                           #    2,437 GHz                         (86,93%)
+       615.345.576      instructions                     #    1,00  insn per cycle              (96,20%)
+       116.231.337      branches                         #  462,318 M/sec                       (93,00%)
+         2.928.822      branch-misses                    #    2,52% of all branches             (92,43%)
+         7.845.921      cache-references                 #   31,208 M/sec                       (86,72%)
+         1.417.826      cache-misses                     #   18,07% of all cache refs           (89,24%)
+       158.322.235      L1-dcache-loads                  #  629,737 M/sec                       (86,12%)
+         9.803.694      L1-dcache-load-misses            #    6,19% of all L1-dcache accesses   (86,81%)
+   <not supported>      L1-icache-loads                                                       
+        10.809.463      L1-icache-load-misses                                                   (88,14%)
+         3.257.160      LLC-loads                        #   12,956 M/sec                       (93,10%)
+   <not supported>      LLC-load-misses                                                       
+             5.069      context-switches                 #   20,162 K/sec                     
+               113      cpu-migrations                   #  449,465 /sec                      
+            10.937      page-faults                      #   43,503 K/sec                     
+
+       0,365231972 seconds time elapsed
+
+       0,115830000 seconds user
+       0,138690000 seconds sys
+
+

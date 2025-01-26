@@ -1,0 +1,28 @@
+# started on Sun Jan 26 19:18:58 2025
+
+
+ Performance counter stats for './kmeans_omp test_files/input10D.inp 6 300 1 0.0001 output_file.txt':
+
+             40,66 msec task-clock                       #    2,316 CPUs utilized             
+       130.809.585      cycles                           #    3,217 GHz                         (39,04%)
+        67.491.239      instructions                     #    0,52  insn per cycle              (79,39%)
+        17.693.228      branches                         #  435,171 M/sec                       (90,97%)
+            43.973      branch-misses                    #    0,25% of all branches             (96,93%)
+            89.933      cache-references                 #    2,212 M/sec                     
+            29.966      cache-misses                     #   33,32% of all cache refs         
+        10.634.349      L1-dcache-loads                  #  261,556 M/sec                     
+            63.973      L1-dcache-load-misses            #    0,60% of all L1-dcache accesses 
+   <not supported>      L1-icache-loads                                                       
+           115.901      L1-icache-load-misses                                                 
+            17.061      LLC-loads                        #  419,621 K/sec                       (79,40%)
+   <not supported>      LLC-load-misses                                                       
+                43      context-switches                 #    1,058 K/sec                     
+                 6      cpu-migrations                   #  147,572 /sec                      
+               100      page-faults                      #    2,460 K/sec                     
+
+       0,017553467 seconds time elapsed
+
+       0,041319000 seconds user
+       0,000000000 seconds sys
+
+
