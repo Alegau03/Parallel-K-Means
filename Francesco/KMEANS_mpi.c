@@ -52,7 +52,19 @@
     block double end = MPI_Wtime();                                            \
     printf("\n%s time : %lf\n ", #block, end - start);                         \
   }
-
+#define MPI_call_check(call)                                                   \
+  {                                                                            \
+    int err_code = call;                                                       \
+    if (err_code != MPI_SUCCESS) {                                             \
+      char error_string[BUFSIZ];                                               \
+      int length_of_error_string;                                              \
+      MPI_Error_string(err_code, error_string, &length_of_error_string);       \
+      fprintf(stderr, "\nMPI error in line %d : %s\n", __LINE__,               \
+              error_string);                                                   \
+      fflush(stderr);                                                          \
+      MPI_Abort(MPI_COMM_WORLD, err_code);                                     \
+    }                                                                          \
+  }
 // Macros
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -219,9 +231,9 @@ void zeroIntArray(int *array, int size) {
 
 int main(int argc, char *argv[]) {
   /* 0. Initialize MPI */
-  MPI_Init(&argc, &argv);
+  MPI_call_check(MPI_Init(&argc, &argv));
   int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_call_check(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
   MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
   // START CLOCK***************************************
@@ -351,7 +363,7 @@ int main(int argc, char *argv[]) {
 
   int tmp_lines = lines;
 
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+  MPI_call_check(MPI_Comm_size(MPI_COMM_WORLD, &comm_size));
 
   if (rank == 0) {
     point_distribution = calloc(comm_size, sizeof(int));
@@ -399,8 +411,9 @@ int main(int argc, char *argv[]) {
     pointsPerClass[K] = changes;
     zeroIntArray(glob_pointsPerClass, K + 1);
 
-    MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM,
-                   MPI_COMM_WORLD, &requests[0]);
+    MPI_call_check(MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1,
+                                  MPI_INT, MPI_SUM, MPI_COMM_WORLD,
+                                  &requests[0]));
 
     zeroFloatMatriz(auxCentroids, K, samples);
     zeroFloatMatriz(glob_auxCentroids, K, samples);
@@ -411,9 +424,10 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,
-                   MPI_SUM, MPI_COMM_WORLD, &requests[1]);
-    MPI_Waitall(2, requests, MPI_STATUSES_IGNORE);
+    MPI_call_check(MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples,
+                                  MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD,
+                                  &requests[1]));
+    MPI_call_check(MPI_Waitall(2, requests, MPI_STATUSES_IGNORE));
     for (i = 0; i < K; i++) {
       reciprocal = 1.0f / glob_pointsPerClass[i];
       for (j = 0; j < samples; j++) {
@@ -435,8 +449,9 @@ int main(int argc, char *argv[]) {
     outputMsg = strcat(outputMsg, line);
   } while ((changes > minChanges) && (it < maxIterations) &&
            (sqrt(maxDist) > maxThreshold));
-  MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
-              point_distribution, offset, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_call_check(MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
+                             point_distribution, offset, MPI_INT, 0,
+                             MPI_COMM_WORLD));
   /*
    *
    * STOP HERE: DO NOT CHANGE THE CODE BELOW THIS POINT
@@ -449,8 +464,9 @@ int main(int argc, char *argv[]) {
   // END CLOCK*****************************************
   end = MPI_Wtime();
   float comp_time = end - start;
-  MPI_Reduce(&comp_time, MPI_IN_PLACE, 1, MPI_FLOAT, MPI_MAX, 0,
-             MPI_COMM_WORLD);
+  float max_comp_time;
+  MPI_call_check(MPI_Reduce(&comp_time, &max_comp_time, 1, MPI_FLOAT, MPI_MAX,
+                            0, MPI_COMM_WORLD));
   if (rank == 0) {
     printf("\nComputation: %f seconds", comp_time);
     fflush(stdout);

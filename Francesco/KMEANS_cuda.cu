@@ -536,7 +536,6 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
   int global_id = threadIdx.x + blockIdx.x * blockDim.x;
   int local_changes = 0;
 
-  __syncthreads();
   for (int i = 0; i < POINTS_PER_THREAD; ++i) {
     int pointIndex = (global_id * POINTS_PER_THREAD) + i;
     if (pointIndex >= d_lines)
@@ -565,7 +564,8 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
                 d_data[pointIndex * d_samples + j]);
     }
   }
-  atomicAdd(d_changes, local_changes);
+  if (local_changes > 0)
+    atomicAdd(d_changes, local_changes);
 }
 
 __global__ void GPU_CentroidsUpdate(int *d_pointsPerClass,

@@ -1,5 +1,5 @@
 mpicc KMEANS_mpi.c -o kmeans_mpi -lm
-gcc -O3 -fopenmp KMEANS_omp.c -o kmeans_omp -lm
+gcc-14 -O3 -fopenmp KMEANS_omp.c -o kmeans_omp -lm
 mpirun  -n 8   ./kmeans_mpi test_files/input2D.inp 6 3000 10 0.00001 test_files/output2D  > result_mpi
 ./kmeans_omp test_files/input100D2.inp 6000 3000 10 0.00001 test_files/output100D2_omp > result_omp
 
