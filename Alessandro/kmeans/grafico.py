@@ -1,47 +1,58 @@
 import matplotlib.pyplot as plt
 
-# Dati forniti corretti
-mpi_omp_data = {
-    "2D": 0.005996,
-    "2D2": 0.000398,
-    "10D": 0.003921,
-    "20D": 0.009482,
-    "100D": 0.013373,
-    "100D2": 0.079466
+# Dati aggiornati
+seriale_data = {
+    "2D": 0.001533,
+    "2D2": 0.000013,
+    "10D": 0.000905,
+    "20D": 0.031411,
+    "100D": 0.136542,
+    "100D2": 1.842681
+}
+
+mpi_data = {
+    "2D": 0.001483,
+    "2D2": 0.000622,
+    "10D": 0.002237,
+    "20D": 0.017570,
+    "100D": 0.028294,
+    "100D2": 0.164148
 }
 
 omp_data = {
-    "2D": 0.001015,
-    "2D2": 0.000257,
-    "10D": 0.000796,
-    "20D": 0.004708,
-    "100D": 0.008996,
-    "100D2": 0.081544
+    "2D": 0.000821,
+    "2D2": 0.000528,
+    "10D": 0.000858,
+    "20D": 0.001008,
+    "100D": 0.001438,
+    "100D2": 0.009094
 }
 
-mpi_4proc_data = {
-    "2D": 0.004095,
-    "2D2": 0.000051,
-    "10D": 0.001654,
-    "20D": 0.002952,
-    "100D": 0.009717,
-    "100D2": 0.067982
+mpi_omp_data = {
+    "2D": 0.002298,
+    "2D2": 0.000661,
+    "10D": 0.002430,
+    "20D": 0.014266,
+    "100D": 0.010206,
+    "100D2": 0.087996
 }
 
 # Creazione delle etichette e dei valori
-inputs = list(mpi_omp_data.keys())
-mpi_omp_values = [mpi_omp_data[input] for input in inputs]
+inputs = list(seriale_data.keys())
+seriale_values = [seriale_data[input] for input in inputs]
+mpi_values = [mpi_data[input] for input in inputs]
 omp_values = [omp_data[input] for input in inputs]
-mpi_values = [mpi_4proc_data[input] for input in inputs]
+mpi_omp_values = [mpi_omp_data[input] for input in inputs]
 
 # Creazione del grafico
 plt.figure(figsize=(12, 8))
-plt.plot(inputs, mpi_omp_values, marker='o', label='MPI + OpenMP (4 processi)')
+plt.plot(inputs, seriale_values, marker='o', label='Seriale')
+plt.plot(inputs, mpi_values, marker='o', label='MPI')
 plt.plot(inputs, omp_values, marker='o', label='OpenMP')
-plt.plot(inputs, mpi_values, marker='o', label='MPI (4 processi)')
+plt.plot(inputs, mpi_omp_values, marker='o', label='MPI + OpenMP')
 
 # Dettagli del grafico
-plt.title("Confronto dei Tempi di Esecuzione: MPI, OpenMP e MPI + OpenMP")
+plt.title("Confronto dei Tempi di Esecuzione: Seriale, MPI, OpenMP e MPI + OpenMP")
 plt.xlabel("Input")
 plt.ylabel("Tempo (s)")
 plt.legend(loc="upper left")
@@ -49,5 +60,5 @@ plt.grid(True)
 plt.tight_layout()
 
 # Salvataggio del grafico
-plt.savefig("images/Grafico3.png")
+plt.savefig("images/Grafico4.png")
 plt.show()

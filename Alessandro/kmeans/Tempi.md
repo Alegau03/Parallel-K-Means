@@ -95,6 +95,7 @@ CON OTTIMIZZAZIONE SULLA DISTANZA
 ## Alcuni test su MPI
 Faccio delle esecuzioni con altri parametri, saranno tutti svolti con MPI ottimizzato con 4 thread (il più veloce) su input 100D2
 
+## Esecuzioni Strane su PC
 ### Prima Esecuzione
 - NUM_CLUSTER=100
 - MAX_ITERATIONS=300

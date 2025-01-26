@@ -4,14 +4,14 @@
 echo "##################################################"
 echo "Compilazione dei programmi..."
 #mpicc -o kmeans_mpi KMEANS_mpi.c -lm -O3
-#gcc-14 -fopenmp -o kmeans_openmp KMEANS_omp.c -lm -O3
+gcc-14 -fopenmp -o kmeans_openmp KMEANS_omp.c -lm -O3
 mpicc -fopenmp -o kmeans_mpi_omp KMEANS_mpi_omp.c -lm -O3
-#gcc KMEANS.c -o kmeans -O3
+#gcc KMEANS.c -o kmeans -O3 -lm
 
 # Parametri comuni
-INPUT_FILE="test_files/input2D.inp"
+INPUT_FILE="test_files/input100D2.inp"
 #OUTPUT_FILE_MPI="test_files/output_mpi.txt"
-#OUTPUT_FILE_OMP="test_files/output_omp.txt"
+OUTPUT_FILE_OMP="test_files/output_omp.txt"
 #OUTPUT_FILE_SEQ="test_files/output100d2_seq.txt"
 OUTPUT_FILE_MPI_OMP="test_files/output_mpi_omp.txt"
 NUM_CLUSTER=6
@@ -21,7 +21,7 @@ THRESHOLD=0.0001
 
 # File di output per i risultati e i tempi
 #RESULT_MPI="test_files/result_mpi.txt"
-#RESULT_OMP="test_files/result_omp.txt"
+RESULT_OMP="test_files/result_omp.txt"
 #RESULT_SEQ="test_files/result_seq"
 RESULT_MPI_OMP="test_files/result_mpi_omp.txt"
 #TIMING_MPI="test_files/timing_mpi.txt"
@@ -31,7 +31,7 @@ TIMING_MPI_OMP="test_files/timing_mpi_omp.txt"
 
 # Inizializza i file dei tempi
 #> $TIMING_MPI
-#> $TIMING_OMP
+> $TIMING_OMP
 #> $TIMING_SEQ
 > $TIMING_MPI_OMP
 
@@ -56,9 +56,9 @@ run_program() {
 # Esegui i programmi
 
 #run_program "mpirun -np 4 ./kmeans_mpi" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_MPI" "$RESULT_MPI" "$TIMING_MPI"
-#run_program "./kmeans_openmp" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_OMP" "$RESULT_OMP" "$TIMING_OMP"
+run_program "./kmeans_openmp" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_OMP" "$RESULT_OMP" "$TIMING_OMP"
 #run_program "./kmeans" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_SEQ" "$RESULT_SEQ" "$TIMING_SEQ"
-run_program "mpirun -np 8 ./kmeans_mpi_omp" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_MPI_OMP" "$RESULT_MPI_OMP" "$TIMING_MPI_OMP"
+run_program "mpirun -np 4 ./kmeans_mpi_omp" "$INPUT_FILE $NUM_CLUSTER $MAX_ITERATIONS $MIN_CHANGES $THRESHOLD $OUTPUT_FILE_MPI_OMP" "$RESULT_MPI_OMP" "$TIMING_MPI_OMP"
 echo "##################################################"
 echo "Tutte le esecuzioni sono state completate!"
 

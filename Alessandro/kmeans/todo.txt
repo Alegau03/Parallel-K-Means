@@ -7,7 +7,7 @@
 -⁠ ⁠Fare grafici
     - MPI OPT vs MPI No OPT - FATTO
     - Vari processi MPI - FATTO
-    - MPI vs OMP vs Mpi+OMP con 4 processi
+    - MPI vs OMP vs Mpi+OMP con 4 processi - FATTO
     - Completo
 -⁠ ⁠Versione MPI+OMP - FATTO
 -⁠ ⁠Scrivere relazione su:
@@ -15,4 +15,6 @@
     - omp - FATTO
     - mpi+omp  - FATTO
     - problema avuto con 100D2
-    - problemi avuti con MPI+OMP (alla fine del file ibrido)
+    - problemi avuti con MPI+OMP (alla fine del file ibrido) - FATTO
+- Tabella con run diverse
+- Perff  
