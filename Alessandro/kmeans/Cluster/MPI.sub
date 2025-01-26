@@ -1,0 +1,24 @@
+universe = parallel
+
+# Specifica la macchina multi-core
+machine_count = 1
+
+# Dove salvare log, output ed errori
+log = logs/kmeans_mpi_job.log
+output = logs/kmeans_mpi_job.out
+error = logs/kmeans_mpi_job.err
+
+# File eseguibile e argomenti
+executable = /usr/bin/mpirun
+arguments = -np 4 ./kmeans_mpi test_files/input2D.inp 6 300 10 0.0001 test_files/output2d_mpiCLUSTER.txt
+
+
+# Richieste risorse (1 nodo GPU, 4 core CPU)
+request_gpus = 1
+request_cpus = 8
+
+# Escludi specifiche macchine
+requirements = (Machine != "node126.di.rm1")
+
+# Avvia il job
+queue

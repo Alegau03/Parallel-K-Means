@@ -1,0 +1,19 @@
+universe = vanilla
+
+# Dove salvare log, output ed errori
+log = logs/kmeans_ser_job.log
+output = logs/kmeans_ser_job.out
+error = logs/kmeans_ser_job.err
+
+# File eseguibile e argomenti
+executable = kmeans
+arguments = test_files/input2D.inp 6 300 10 0.0001 test_files/output2d_serial_CLUSTER.txt
+
+# Richiesta risorse CPU (solo 1 core per esecuzione seriale)
+request_cpus = 1
+
+# Escludi specifiche macchine, se necessario
+requirements = (Machine != "node126.di.rm1")
+
+# Avvia il job
+queue
