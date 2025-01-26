@@ -7,7 +7,7 @@
 	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.295744 seconds
+Memory allocation: 0.332758 seconds
 
 	Data file: test_files/input100D2.inp 
 	Points: 100000
@@ -17,7 +17,7 @@ Memory allocation: 0.295744 seconds
 	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.296303 seconds
+Memory allocation: 0.332779 seconds
 
 	Data file: test_files/input100D2.inp 
 	Points: 100000
@@ -27,7 +27,7 @@ Memory allocation: 0.296303 seconds
 	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.296601 seconds
+Memory allocation: 0.332785 seconds
 
 	Data file: test_files/input100D2.inp 
 	Points: 100000
@@ -37,7 +37,7 @@ Memory allocation: 0.296601 seconds
 	Minimum number of changes: 1000 [1% of 100000 points]
 	Maximum centroid precision: 0.000100
 
-Memory allocation: 0.299462 seconds
+Memory allocation: 0.336971 seconds
 
 [1] Cluster changes: 100000	Max. centroid distance: 460401.854662
 [2] Cluster changes: 15536	Max. centroid distance: 388075.524526
@@ -101,9 +101,6 @@ Memory allocation: 0.299462 seconds
 [30] Cluster changes: 924	Max. centroid distance: 405264.009791
 
 Termination condition:
-Minimum number of changes reached: 924 [1000]
-
-Memory deallocation: 0.000495 seconds
 
 [1] Cluster changes: 100000	Max. centroid distance: 462846.371679
 [2] Cluster changes: 15536	Max. centroid distance: 389357.485424
@@ -150,10 +147,6 @@ Memory deallocation: 0.000495 seconds
 [27] Cluster changes: 1554	Max. centroid distance: 414516.414227
 [28] Cluster changes: 1162	Max. centroid distance: 414482.697540
 [29] Cluster changes: 1021	Max. centroid distance: 414730.943066
-[30] Cluster changes: 924	Max. centroid distance: 414763.395260
-Computation: 0.073303 seconds
-
-Termination condition:
 510.886363
 [17] Cluster changes: 3544	Max. centroid distance: 353506.014659
 [18] Cluster changes: 4102	Max. centroid distance: 361498.525939
@@ -166,6 +159,9 @@ Termination condition:
 [25] Cluster changes: 2976	Max. centroid distance: 406650.560870
 [26] Cluster changes: 2121	Max. centroid distance: 408654.448609
 [27] Cluster changes: 1554	Max. centroid distance: 410725.254349
+Minimum number of changes reached: 924 [1000]
+
+Memory deallocation: 0.000508 seconds
 [28] Cluster changes: 1162	Max. centroid distance: 411732.269981
 [29] Cluster changes: 1021	Max. centroid distance: 411120.856508
 [30] Cluster changes: 924	Max. centroid distance: 411847.633185
@@ -174,12 +170,16 @@ Termination condition:
 [30] Cluster changes: 924	Max. centroid distance: 417422.464024
 
 Termination condition:
+[30] Cluster changes: 924	Max. centroid distance: 414763.395260
+Computation: 0.072537 seconds
+
+Termination condition:
 Minimum number of changes reached: 924 [1000]
 
-Memory deallocation: 0.000469 seconds
+Memory deallocation: 0.000498 seconds
 Minimum number of changes reached: 924 [1000]
 
-Memory deallocation: 0.000483 seconds
+Memory deallocation: 0.000763 seconds
 Minimum number of changes reached: 924 [1000]
 
-Memory deallocation: 0.005311 seconds
+Memory deallocation: 0.005088 seconds
