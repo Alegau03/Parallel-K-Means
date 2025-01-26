@@ -18,3 +18,4 @@
     - problemi avuti con MPI+OMP (alla fine del file ibrido) - FATTO
 - Tabella con run diverse - FATTO
 - Perff  
+- Run francesco macro
