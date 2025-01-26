@@ -10,14 +10,14 @@ error = logs/kmeans_mpiomp_job.err
 
 # File eseguibile e argomenti
 executable = /usr/bin/mpirun
-arguments = -np 4 ./kmeans_mpi_omp test_files/input2D.inp 6 300 10 0.0001 test_files/output2d_mpi_omp_CLUSTER.txt
+arguments = -np 4 ./kmeans_mpi_omp test_files/input2D.inp 6 300 1 0.0001 test_files/output2d_mpi_omp_CLUSTER.txt
 
 # Variabili d'ambiente: aumento dei thread OpenMP
 environment = "OMP_NUM_THREADS=4"
 
 # Richieste risorse (1 nodo GPU, 16 core CPU)
 request_gpus = 1
-request_cpus = 16
+request_cpus = 8
 
 # Escludi specifiche macchine
 requirements = (Machine != "node126.di.rm1")

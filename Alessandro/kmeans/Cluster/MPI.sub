@@ -10,7 +10,7 @@ error = logs/kmeans_mpi_job.err
 
 # File eseguibile e argomenti
 executable = /usr/bin/mpirun
-arguments = -np 4 ./kmeans_mpi test_files/input2D.inp 6 300 10 0.0001 test_files/output2d_mpiCLUSTER.txt
+arguments = -np 16 ./kmeans_mpi test_files/input100D2.inp 10000 300 0.001 0.0001 test_files/output2d_mpiCLUSTER.txt
 
 
 # Richieste risorse (1 nodo GPU, 4 core CPU)
