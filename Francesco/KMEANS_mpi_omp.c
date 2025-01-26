@@ -286,8 +286,7 @@ int main(int argc, char *argv[]) {
   /* 0. Initialize MPI */
   int provided;
   MPI_call_check(MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &provided));
-  if (MPI_Query_thread(&provided) == MPI_SUCCESS)
-    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  MPI_call_check(MPI_Query_thread(&provided));
   int rank;
   MPI_call_check(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
   MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
