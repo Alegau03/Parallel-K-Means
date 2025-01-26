@@ -434,6 +434,7 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
   int *localClassMap = calloc(my_iteration, sizeof(int)); //Memorizza la classe assegnata a ciascun punto del dataset.
   MPI_Request requests[2]; //Array di richieste MPI.
   float reciprocal; 
+  // Decido quale funzione usare in base all input, 2 dimensioni -> UNROLLEDeuclideanDistance, altrimenti euclideanDistance
   float (*distanceFun)(float *, float *, int) =
       (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
   do {

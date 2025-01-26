@@ -434,24 +434,29 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
   int *localClassMap = calloc(my_iteration, sizeof(int)); //Memorizza la classe assegnata a ciascun punto del dataset.
   MPI_Request requests[2]; //Array di richieste MPI.
   float reciprocal; 
+  // Decido quale funzione usare in base all input, 2 dimensioni -> UNROLLEDeuclideanDistance, altrimenti euclideanDistance
   float (*distanceFun)(float *, float *, int) =
       (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
   do {
-    it++;
-
-    // 1. Calculate the distance from each point to the centroid
-    // Assign each point to the nearest centroid.
-    //Changes incrementa se la classe del punto cambia rispetto all'iterazione precedente.
 
     /*
+      1. Calculate the distance from each point to the centroid
+      Assign each point to the nearest centroid.
+      Changes incrementa se la classe del punto cambia rispetto all'iterazione precedente.
+
+    
       In questo parallel for calcoliamo quale sia il centroide più vicino per ogni punto e aggiorniamo due informazioni:
         -local_changes: se la classe del punto è cambiata rispetto all’iterazione precedente.
         -pointsPerClass[]: quanti punti sono stati assegnati a ciascun cluster.
       
       Li inseriamo in clausola reduction(+:local_changes, pointsPerClass[:K]) per evitare le race condition e sommare correttamente i contributi di tutti i thread.
+      E' fondamentale la clausola di riduzione su pointsPerClass per evitare che i thread si sovrascrivano a vicenda.
+
     */
+
+    it++;
     changes = 0;
-   int i, j; // Da dichiarare fuori per evitare errori di compilazione
+    int i, j; // Da dichiarare fuori per evitare errori di compilazione
     // Variabile locale in riduzione per conteggiare quanti punti cambiano cluster
     int local_changes = 0;
 
@@ -459,6 +464,7 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
 #pragma omp parallel for private(j) \
             reduction(+:local_changes, pointsPerClass[:K]) \
             schedule(static)
+// Itera sui punti assegnati a questo processo
 for (i = my_offset; i < my_offset + my_iteration; i++) {
     // Indice locale (per accedere a localClassMap)
     int idx = i - my_offset;
@@ -491,14 +497,14 @@ for (i = my_offset; i < my_offset + my_iteration; i++) {
 // Al termine del for parallelo, local_changes è stato ridotto: aggiorniamo changes
 changes = local_changes;
 
-
+// Aggiorniamo pointsPerClass[K] con il numero totale di punti che hanno cambiato classe
     pointsPerClass[K] = changes;
     zeroIntArray(glob_pointsPerClass, K + 1);
 
-    // Somma globale non bloccante sui contatori locali (pointsPerClass e auxCentroids).
+// Somma globale non bloccante sui contatori locali (pointsPerClass e auxCentroids).
     #pragma omp barrier
     MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM,
-                   MPI_COMM_WORLD, &requests[0]);
+                   MPI_COMM_WORLD, &requests[0]); //Riduzione MPI non bloccante
     MPI_Waitall(1, requests, MPI_STATUSES_IGNORE);
     zeroFloatMatriz(auxCentroids, K, samples); //Inizializza la matrice auxCentroids a 0.
     zeroFloatMatriz(glob_auxCentroids, K, samples); //Inizializza la matrice glob_auxCentroids a 0.
@@ -510,15 +516,15 @@ changes = local_changes;
 
      Prepara i dati per calcolare i nuovi centroidi.
      Le somme parziali calcolate da ciascun processo verranno combinate globalmente tramite una riduzione (MPI_Iallreduce), permettendo l'aggiornamento dei centroidi.
-    */
     
-// Esempio di azzeramento prima del parallel for (fuori da esso):
-// memset(pointsPerClass, 0, sizeof(int)*K);
-// memset(auxCentroids, 0, sizeof(float)*K*samples);
-/*
-  Qui aggiorniamo di nuovo pointsPerClass[] (se vogliamo contare esattamente quanti punti totali sono in ogni cluster nella seconda passata) 
-  e auxCentroids[] (vettore di somme delle coordinate, che poi sarà diviso per pointsPerClass[c] per ottenere i nuovi centroidi).
-  Anche qui è fondamentale la clausola di riduzione su pointsPerClass e su auxCentroids per evitare che i thread si sovrascrivano a vicenda.
+        
+     Esempio di azzeramento prima del parallel for (fuori da esso):
+     memset(pointsPerClass, 0, sizeof(int)*K);
+     memset(auxCentroids, 0, sizeof(float)*K*samples);
+
+     Qui aggiorniamo di nuovo pointsPerClass[] (se vogliamo contare esattamente quanti punti totali sono in ogni cluster nella seconda passata) 
+     e auxCentroids[] (vettore di somme delle coordinate, che poi sarà diviso per pointsPerClass[c] per ottenere i nuovi centroidi).
+     Anche qui è fondamentale la clausola di riduzione su pointsPerClass e su auxCentroids per evitare che i thread si sovrascrivano a vicenda.
 */
 
 #pragma omp parallel for private(j) \
@@ -553,11 +559,10 @@ for (i = my_offset; i < my_offset + my_iteration; i++) {
     #pragma omp barrier
     MPI_Waitall(2, requests, MPI_STATUSES_IGNORE);
 
-/*
-  Divide ogni somma globale per il numero di punti nel cluster
-  I centroidi vengono aggiornati copiando i nuovi valori.
-*/
 
+  //Divide ogni somma globale per il numero di punti nel cluster
+  //I centroidi vengono aggiornati copiando i nuovi valori.
+  //Calcola la distanza massima tra i centroidi precedenti e quelli aggiornati.
     for (i = 0; i < K; i++) {
       reciprocal = 1.0f / glob_pointsPerClass[i];
       for (j = 0; j < samples; j++) {
@@ -582,6 +587,10 @@ for (i = my_offset; i < my_offset + my_iteration; i++) {
     //Condizione di terminazione
   } while ((changes > minChanges) && (it < maxIterations) &&
            (sqrt(maxDist) > maxThreshold));
+// Terminiamo se:
+// 1) changes <= minChanges (pochi cambiamenti di cluster)
+// 2) raggiunto il maxIterations
+// 3) i centroidi si sono spostati meno di maxThreshold
 
   // Raccoglie tutte le classificazioni locali nei processi e le combina nel processo con rank 0.
   #pragma omp barrier

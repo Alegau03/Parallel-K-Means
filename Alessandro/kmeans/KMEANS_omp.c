@@ -358,6 +358,7 @@ classMap: Mappa che associa ogni punto del dataset al suo cluster corrente.
    * START HERE: DO NOT CHANGE THE CODE ABOVE THIS POINT
    *
    */
+  // Decido quale funzione usare in base all input, 2 dimensioni -> UNROLLEDeuclideanDistance, altrimenti euclideanDistance
   float (*distanceFun)(float *, float *, int) =
       (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
   do {
