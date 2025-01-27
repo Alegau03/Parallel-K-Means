@@ -9,8 +9,6 @@ I parametri sono:
 ## SERIALE
 ### INPUT 2D
 0.000265
-### INPUT 2D2
-0.000002
 ### INPUT 10D
 0.000231
 ### INPUT 20D
@@ -51,14 +49,6 @@ Con ottimizzazione
 6 Processi: 0.002867
 7 Processi: 0.003209
 8 Processi: 0.005206
-### INPUT 2D2
-2 Processi: 0.000037
-3 Processi: 0.000041
-4 Processi: 0.000051
-5 Processi: 0.000223
-6 Processi: 0.000238
-7 Processi: 0.000446
-8 Processi: 0.001058
 ### INPUT 10D
 2 Processi: 0.001226
 3 Processi: 0.001261

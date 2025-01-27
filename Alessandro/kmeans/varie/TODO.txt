@@ -20,3 +20,6 @@
 - Tabella con run diverse - FATTO
 - Perff  - FATTO
 - Run francesco macro - FATTO
+
+
+- Macro chiamate in MPI
