@@ -488,7 +488,7 @@ int main(int argc, char *argv[]) {
   // Decido quale funzione usare in base all input, 2 dimensioni ->
   // UNROLLEDeuclideanDistance, altrimenti euclideanDistance
   float (*distanceFun)(float *, float *, int) =
-      (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
+      (samples % UNROLL == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
 
   do {
 

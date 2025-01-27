@@ -33,7 +33,7 @@
                   -ncu */
 #define UNROLL 2
 #define NUM_WARP_SCHEDULERS 4
-#define POINTS_PER_THREAD 4
+#define POINTS_PER_THREAD 16
 #define REG_PER_THREAD 32 // nvcc -Xcompiler -fopenmp -Xptxas -v  KMEANS_cuda.cu
 #define MAX_BLOCK_DIM 1024
 #define MAXLINE 2000
