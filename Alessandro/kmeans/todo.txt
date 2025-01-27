@@ -14,8 +14,9 @@
     - mpi - FATTO
     - omp - FATTO
     - mpi+omp  - FATTO
+    - Performance CUDA
     - problema avuto con 100D2
     - problemi avuti con MPI+OMP (alla fine del file ibrido) - FATTO
 - Tabella con run diverse - FATTO
 - Perff  - FATTO
-- Run francesco macro
+- Run francesco macro - FATTO

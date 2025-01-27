@@ -41,8 +41,8 @@ SENZA OTTIMIZZAZIONE SULLA DISTANZA
 4 Processi: 0.229977
 8 Processi: 0.375605
 
-
-CON OTTIMIZZAZIONE SULLA DISTANZA
+Con ottimizzazione
+## MPI 
 ### INPUT 2D
 2 Processi: 0.001493
 3 Processi: 0.001487
@@ -130,10 +130,8 @@ Tempo: 30.266113
 - MIN_CHANGES=0.001
 - THRESHOLD=0.0001
 Tempo: 115.531722
+
 ## OMP
-
-CON OTTIMIZZAZIONE SULLA DISTANZA
-
 ### INPUT 2D
 0.001015
 ### INPUT 2D2
@@ -149,23 +147,23 @@ CON OTTIMIZZAZIONE SULLA DISTANZA
 
 ## MPI + OPENMP
 ### INPUT 2D
-4 Processi: 0.005996
-8 Processi: 0.012003
+4 Processi: 0.010145
+8 Processi: 0.009604
 ### INPUT 2D2
-4 Processi: 0.000398
-8 Processi: 0.003152
+4 Processi: 0.000381
+8 Processi: 0.001572
 ### INPUT 10D
-4 Processi: 0.003921
-8 Processi: 0.009488
+4 Processi: 0.003353
+8 Processi: 0.010671
 ### INPUT 20D
-4 Processi: 0.009482
-8 Processi: 0.030457
+4 Processi: 0.009472
+8 Processi: 0.023515
 ### INPUT 100D
-4 Processi: 0.013373
-8 Processi: 0.045156
+4 Processi: 0.043497
+8 Processi: 0.031229
 ### INPUT 100D2
-4 Processi: 0.079466
-8 Processi: 0.143478
+4 Processi: 0.068657
+8 Processi: 0.114677
 
 ## CUDA
 ### INPUT 2D
