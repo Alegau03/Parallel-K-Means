@@ -353,26 +353,32 @@ int main(int argc, char *argv[]) {
   printf("%d,%d", gridSize, blockSize);
   CHECK_CUDA_CALL(
       cudaMalloc((void **)&d_centroids, K * samples * sizeof(float)));
-  cudaMalloc((void **)&d_data, lines * samples * sizeof(float));
-  cudaMalloc((void **)&d_classMap, lines * sizeof(int));
-  cudaMalloc((void **)&d_auxCentroids, K * samples * sizeof(float));
-  cudaMalloc((void **)&d_pointsPerClass, K * sizeof(int));
-  cudaMalloc((void **)&d_changes, sizeof(int));
+  CHECK_CUDA_CALL(
+      cudaMalloc((void **)&d_data, lines * samples * sizeof(float)));
+  CHECK_CUDA_CALL(cudaMalloc((void **)&d_classMap, lines * sizeof(int)));
+  CHECK_CUDA_CALL(
+      cudaMalloc((void **)&d_auxCentroids, K * samples * sizeof(float)));
+  CHECK_CUDA_CALL(cudaMalloc((void **)&d_pointsPerClass, K * sizeof(int)));
+  CHECK_CUDA_CALL(cudaMalloc((void **)&d_changes, sizeof(int)));
 
-  cudaMemcpy(d_centroids, centroids, K * samples * sizeof(float),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(d_data, data, lines * samples * sizeof(float),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(d_classMap, ClassMap, lines * sizeof(int), cudaMemcpyHostToDevice);
+  CHECK_CUDA_CALL(cudaMemcpy(d_centroids, centroids,
+                             K * samples * sizeof(float),
+                             cudaMemcpyHostToDevice));
+  CHECK_CUDA_CALL(cudaMemcpy(d_data, data, lines * samples * sizeof(float),
+                             cudaMemcpyHostToDevice));
+  CHECK_CUDA_CALL(cudaMemcpy(d_classMap, ClassMap, lines * sizeof(int),
+                             cudaMemcpyHostToDevice));
 
-  cudaMemset(d_auxCentroids, .0, K * samples * sizeof(float));
-  cudaMemset(d_pointsPerClass, 0, K * sizeof(int));
-  cudaMemset(d_changes, 0, sizeof(int));
+  CHECK_CUDA_CALL(cudaMemset(d_auxCentroids, .0, K * samples * sizeof(float)));
+  CHECK_CUDA_CALL(cudaMemset(d_pointsPerClass, 0, K * sizeof(int)));
+  CHECK_CUDA_CALL(cudaMemset(d_changes, 0, sizeof(int)));
 
-  cudaMemcpyToSymbol(d_lines, &lines, sizeof(int), 0, cudaMemcpyHostToDevice);
-  cudaMemcpyToSymbol(d_K, &K, sizeof(int), 0, cudaMemcpyHostToDevice);
-  cudaMemcpyToSymbol(d_samples, &samples, sizeof(int), 0,
-                     cudaMemcpyHostToDevice);
+  CHECK_CUDA_CALL(cudaMemcpyToSymbol(d_lines, &lines, sizeof(int), 0,
+                                     cudaMemcpyHostToDevice));
+  CHECK_CUDA_CALL(
+      cudaMemcpyToSymbol(d_K, &K, sizeof(int), 0, cudaMemcpyHostToDevice));
+  CHECK_CUDA_CALL(cudaMemcpyToSymbol(d_samples, &samples, sizeof(int), 0,
+                                     cudaMemcpyHostToDevice));
   do {
     changes = 0;
 
@@ -380,14 +386,18 @@ int main(int argc, char *argv[]) {
         d_pointsPerClass, d_auxCentroids, d_changes, d_centroids, d_data,
         d_classMap);
     cudaDeviceSynchronize();
-    cudaMemcpy(&changes, d_changes, sizeof(int), cudaMemcpyDeviceToHost);
+    CHECK_CUDA_LAST();
+    CHECK_CUDA_CALL(
+        cudaMemcpy(&changes, d_changes, sizeof(int), cudaMemcpyDeviceToHost));
 
     GPU_CentroidsUpdate<<<K, samples>>>(d_pointsPerClass, d_auxCentroids,
                                         d_centroids);
     cudaDeviceSynchronize();
+    CHECK_CUDA_LAST();
 
-    cudaMemcpy(auxCentroids, d_centroids, K * samples * sizeof(float),
-               cudaMemcpyDeviceToHost);
+    CHECK_CUDA_CALL(cudaMemcpy(auxCentroids, d_centroids,
+                               K * samples * sizeof(float),
+                               cudaMemcpyDeviceToHost));
 
     maxDist = FLT_MIN;
     for (i = 0; i < K; i++) {
@@ -403,13 +413,15 @@ int main(int argc, char *argv[]) {
     sprintf(line, "\n[%d] Cluster changes: %d\tMax. centroid distance: %f", it,
             changes, sqrt(maxDist));
     outputMsg = strcat(outputMsg, line);
-    cudaMemset(d_auxCentroids, .0, K * samples * sizeof(float));
-    cudaMemset(d_pointsPerClass, 0, K * sizeof(float));
-    cudaMemset(d_changes, 0, sizeof(int));
+    CHECK_CUDA_CALL(
+        cudaMemset(d_auxCentroids, .0, K * samples * sizeof(float)));
+    CHECK_CUDA_CALL(cudaMemset(d_pointsPerClass, 0, K * sizeof(float)));
+    CHECK_CUDA_CALL(cudaMemset(d_changes, 0, sizeof(int)));
 
   } while ((changes > minChanges) && (it < maxIterations) &&
            (maxDist > maxThreshold * maxThreshold));
-  cudaMemcpy(ClassMap, d_classMap, lines * sizeof(int), cudaMemcpyDeviceToHost);
+  CHECK_CUDA_CALL(cudaMemcpy(ClassMap, d_classMap, lines * sizeof(int),
+                             cudaMemcpyDeviceToHost));
   /*
    *
    * STOP HERE: DO NOT CHANGE THE CODE BELOW THIS POINT
@@ -458,12 +470,12 @@ int main(int argc, char *argv[]) {
   free(distCentroids);
   free(pointsPerClass);
   free(auxCentroids);
-  cudaFree(d_auxCentroids);
-  cudaFree(d_data);
-  cudaFree(d_centroids);
-  cudaFree(d_changes);
-  cudaFree(d_pointsPerClass);
-  cudaFree(d_classMap);
+  CHECK_CUDA_CALL(cudaFree(d_auxCentroids));
+  CHECK_CUDA_CALL(cudaFree(d_data));
+  CHECK_CUDA_CALL(cudaFree(d_centroids));
+  CHECK_CUDA_CALL(cudaFree(d_changes));
+  CHECK_CUDA_CALL(cudaFree(d_pointsPerClass));
+  CHECK_CUDA_CALL(cudaFree(d_classMap));
 
   // END CLOCK*****************************************
   end = omp_get_wtime();
