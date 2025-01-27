@@ -22,5 +22,5 @@
 - Run francesco macro - FATTO
 
 
-- Macro chiamate in MPI
+- Macro chiamate in MPI - FATTO
 - EFFICENZA COn un processo solo mpi

@@ -57,6 +57,23 @@
     printf("\n%s time : %lf\n ", #block, end - start);                         \
   }
 
+
+// Macro per controllare gli errori delle chiamate MPI
+#define MPI_call_check(call)                                                   \
+  {                                                                            \
+    int err_code = call;                                                       \
+    if (err_code != MPI_SUCCESS) {                                             \
+      char error_string[BUFSIZ];                                               \
+      int length_of_error_string;                                              \
+      MPI_Error_string(err_code, error_string, &length_of_error_string);       \
+      fprintf(stderr, "\nMPI error in line %d : %s\n", __LINE__,               \
+              error_string);                                                   \
+      fflush(stderr);                                                          \
+      MPI_Abort(MPI_COMM_WORLD, err_code);                                     \
+    }                                                                          \
+  }
+
+
 // Macros
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -263,9 +280,9 @@ void zeroIntArray(int *array, int size) {
 
 int main(int argc, char *argv[]) {
   /* 0. Initialize MPI */
-  MPI_Init(&argc, &argv);
+  MPI_call_check(MPI_Init(&argc, &argv));
   int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_call_check(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
   MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN); //Gestore errori personalizzato
 
   // START CLOCK***************************************
@@ -413,7 +430,7 @@ Determinare la distribuzione dei punti del dataset tra i processi MPI.
 Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni processo deve elaborare.
 */
 
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_size); //numero di processi
+  MPI_call_check(MPI_Comm_size(MPI_COMM_WORLD, &comm_size)); //numero di processi
 
 // Solo il processo 0 calcola la distribuzione dei punti tra i processi MPI
   if (rank == 0) {
@@ -465,8 +482,8 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
     zeroIntArray(glob_pointsPerClass, K + 1);
 
     // Somma globale non bloccante sui contatori locali (pointsPerClass e auxCentroids).
-    MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM,
-                   MPI_COMM_WORLD, &requests[0]);
+    MPI_call_check(MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM,
+                   MPI_COMM_WORLD, &requests[0]));
 
     zeroFloatMatriz(auxCentroids, K, samples); //Inizializza la matrice auxCentroids a 0.
     zeroFloatMatriz(glob_auxCentroids, K, samples); //Inizializza la matrice glob_auxCentroids a 0.
@@ -486,8 +503,8 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
       } 
     }
     // Somma globale non bloccante sui contatori locali (pointsPerClass e auxCentroids).
-    MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,
-                   MPI_SUM, MPI_COMM_WORLD, &requests[1]);
+    MPI_call_check(MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples, MPI_FLOAT,
+                   MPI_SUM, MPI_COMM_WORLD, &requests[1]));
     // Aspetta che entrambe le riduzioni siano completate prima di procedere.
     MPI_Waitall(2, requests, MPI_STATUSES_IGNORE);
 
@@ -521,8 +538,8 @@ Calcolare l'offset iniziale e il numero di punti (my_iteration) che ogni process
            (sqrt(maxDist) > maxThreshold));
 
   // Raccoglie tutte le classificazioni locali nei processi e le combina nel processo con rank 0.
-  MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
-              point_distribution, offset, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_call_check(MPI_Gatherv(localClassMap, my_iteration, MPI_INT, classMap,
+              point_distribution, offset, MPI_INT, 0, MPI_COMM_WORLD));
   /*
    *
    * STOP HERE: DO NOT CHANGE THE CODE BELOW THIS POINT

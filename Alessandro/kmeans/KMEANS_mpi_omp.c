@@ -60,6 +60,8 @@
     printf("\n%s time : %lf\n ", #block, end - start);                         \
   }
 
+
+// Macro per controllare gli errori delle chiamate MPI
 #define MPI_call_check(call)                                                   \
   {                                                                            \
     int err_code = call;                                                       \
