@@ -61,8 +61,10 @@
               cudaGetErrorString(ok));                                         \
   }
 
-__constant__ int d_K, d_samples, d_lines;
-
+__constant__ int d_K, d_samples,
+    d_lines; // numero di cluster, dimensioni, numero di punti memorizzati tutti
+             // nella costant memory e utilizzati da tutti i thread
+/*Segnatura di GPU_ClassAssignment e GPU_CentroidsUpdate */
 __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
                                     float *d_auxCentroids, int *d_changes,
                                     float *d_centroids, float *d_data,
@@ -194,17 +196,19 @@ void initCentroids(const float *data, float *centroids, int *centroidPos,
 Function euclideanDistance: Euclidean distance
 This function could be modified
 */
+/* Modifica della distanza euclidea con l'unroll come nelle altre
+ * implementazioni, inoltre la funzione può essere utilizzata sia da device che
+ * da host */
 __device__ __host__ float euclideanDistance(float *point, float *center,
                                             int samples) {
-  float dist = 0.0;
-  if (samples == 1) {
-    dist += (point[0] - center[0]) * (point[0] - center[0]);
+  float dist1 = 0.0;
+  float dist2 = 0.0;
+  for (int i = 0; i * UNROLL < samples;
+       i++) { // Unroll di due iterazioni del ciclo for
+    dist1 += (point[i] - center[i]) * (point[i] - center[i]);
+    dist2 += (point[i + 1] - center[i + 1]) * (point[i + 1] - center[i + 1]);
   }
-  for (int i = 0; i * UNROLL < samples; i++) {
-    dist += (point[i] - center[i]) * (point[i] - center[i]);
-    dist += (point[i + 1] - center[i + 1]) * (point[i + 1] - center[i + 1]);
-  }
-  return (dist);
+  return (dist1 + dist2);
 }
 
 /*
@@ -349,8 +353,13 @@ int main(int argc, char *argv[]) {
   int *d_pointsPerClass, *d_changes, *d_classMap;
   float *d_centroids, *d_auxCentroids, *d_data;
 
-  OptimalBlockGridDims(ceil(lines / POINTS_PER_THREAD), &blockSize, &gridSize);
-  printf("%d,%d", gridSize, blockSize);
+  OptimalBlockGridDims(
+      ceil(lines / POINTS_PER_THREAD), &blockSize,
+      &gridSize); // calcolo della dimensione ottimale di griglia e blocco in
+                  // base al numero di punti da classficare
+
+  /*Allocazione di centroid, data, auxCentroids, pointsPerClass, changes e
+   * classMap in memoria globale del dispositivo*/
   CHECK_CUDA_CALL(
       cudaMalloc((void **)&d_centroids, K * samples * sizeof(float)));
   CHECK_CUDA_CALL(
@@ -361,6 +370,7 @@ int main(int argc, char *argv[]) {
   CHECK_CUDA_CALL(cudaMalloc((void **)&d_pointsPerClass, K * sizeof(int)));
   CHECK_CUDA_CALL(cudaMalloc((void **)&d_changes, sizeof(int)));
 
+  /*Copia dei centroidi, dati e mappa delle classi da host a device*/
   CHECK_CUDA_CALL(cudaMemcpy(d_centroids, centroids,
                              K * samples * sizeof(float),
                              cudaMemcpyHostToDevice));
@@ -369,10 +379,12 @@ int main(int argc, char *argv[]) {
   CHECK_CUDA_CALL(cudaMemcpy(d_classMap, ClassMap, lines * sizeof(int),
                              cudaMemcpyHostToDevice));
 
+  /*Azzeramento degli array di dati allocati sul device*/
   CHECK_CUDA_CALL(cudaMemset(d_auxCentroids, .0, K * samples * sizeof(float)));
   CHECK_CUDA_CALL(cudaMemset(d_pointsPerClass, 0, K * sizeof(int)));
   CHECK_CUDA_CALL(cudaMemset(d_changes, 0, sizeof(int)));
 
+  /* Copia dei dati che risiedono in costant memory  da host a device */
   CHECK_CUDA_CALL(cudaMemcpyToSymbol(d_lines, &lines, sizeof(int), 0,
                                      cudaMemcpyHostToDevice));
   CHECK_CUDA_CALL(
@@ -380,25 +392,34 @@ int main(int argc, char *argv[]) {
   CHECK_CUDA_CALL(cudaMemcpyToSymbol(d_samples, &samples, sizeof(int), 0,
                                      cudaMemcpyHostToDevice));
   do {
+    // azzeramento dei cambiamenti nel cluster ad ogni iterazione
     changes = 0;
-
+    /* Lancio del kernel  in cui si classificano i punti in d_data e si
+     * accumulano coordinate in auxCentroids, e numero di punti per classe in
+     * pointsPerClass*/
     GPU_ClassAssignment<<<gridSize, blockSize>>>(
         d_pointsPerClass, d_auxCentroids, d_changes, d_centroids, d_data,
         d_classMap);
-    cudaDeviceSynchronize();
+    cudaDeviceSynchronize(); // attende la fine del kernel da parte di ogni
+                             // thread
     CHECK_CUDA_LAST();
+
+    /*Copia dei cambiament i da device ad host dopo la sincronizzazione*/
     CHECK_CUDA_CALL(
         cudaMemcpy(&changes, d_changes, sizeof(int), cudaMemcpyDeviceToHost));
 
+    /*Aggiornamento delle coordinate in d_centroids*/
     GPU_CentroidsUpdate<<<K, samples>>>(d_pointsPerClass, d_auxCentroids,
                                         d_centroids);
-    cudaDeviceSynchronize();
+    cudaDeviceSynchronize(); // attende la fine del kernel da parte di ogni
+                             // thread
     CHECK_CUDA_LAST();
-
+    /* Copia dei centroidi d_centroids in auxCentroids*/
     CHECK_CUDA_CALL(cudaMemcpy(auxCentroids, d_centroids,
                                K * samples * sizeof(float),
                                cudaMemcpyDeviceToHost));
 
+    /* calcolo della distanza di aggiornamento maggiore*/
     maxDist = FLT_MIN;
     for (i = 0; i < K; i++) {
       distCentroids[i] = euclideanDistance(&centroids[i * samples],
@@ -413,6 +434,8 @@ int main(int argc, char *argv[]) {
     sprintf(line, "\n[%d] Cluster changes: %d\tMax. centroid distance: %f", it,
             changes, sqrt(maxDist));
     outputMsg = strcat(outputMsg, line);
+
+    // reset degli array ausiliari sul device e di d_changes
     CHECK_CUDA_CALL(
         cudaMemset(d_auxCentroids, .0, K * samples * sizeof(float)));
     CHECK_CUDA_CALL(cudaMemset(d_pointsPerClass, 0, K * sizeof(float)));
@@ -420,6 +443,8 @@ int main(int argc, char *argv[]) {
 
   } while ((changes > minChanges) && (it < maxIterations) &&
            (maxDist > maxThreshold * maxThreshold));
+
+  // copia finale della mappa delle classi sul device all'host
   CHECK_CUDA_CALL(cudaMemcpy(ClassMap, d_classMap, lines * sizeof(int),
                              cudaMemcpyDeviceToHost));
   /*
@@ -484,7 +509,14 @@ int main(int argc, char *argv[]) {
   //***************************************************/
   return 0;
 }
-
+/*Funzione per il calcolo delle dimensioni ideali di griglia e blocco:
+in:
+        - numero di thread da creare -> int numberOfThreads
+out:
+        - indirizzo in cui salvare la dimensione ottimale del blocco -> int
+*optBlockDim
+        - indirizzo in cui salvare la dimensione ottimale della griglia -> int
+*optGridDim */
 void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
                           int *optGridDim) {
   cudaDeviceProp p;
@@ -506,7 +538,9 @@ void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
   *optBlockDim = BlockDim;
 
   return;
-} /*
+}
+
+/* Funzione che tiene conto dell'imbalance
  void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
                            int *optGridDim) {
    cudaDeviceProp p;
@@ -541,18 +575,33 @@ void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
    }
  }*/
 
+/*Funzione che classifica i punti in d_data e accumula le loro coordinate nelle
+ * coordinate dei centroidi a cui appartengono in d_auxCentroids.
+ in: -array di punti per class -> int *d_pointsPerClass
+     -array che accumula le coordinate dei centroidi -> float* d_auxCentroids
+     -contatore dei cambiamenti nei cluster -> int *d_changes
+     -array di coordinate dei centroidi -> float *d_centroids
+     -array di tutti i punti del dataset -> float *d_data
+     -array contente la mappa delle class -> int *d_classMap*/
 __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
                                     float *d_auxCentroids, int *d_changes,
                                     float *d_centroids, float *d_data,
                                     int *d_classMap) {
-  int global_id = threadIdx.x + blockIdx.x * blockDim.x;
-  int local_changes = 0;
+  int global_id =
+      threadIdx.x + blockIdx.x * blockDim.x; // calcolo della posizione del
+                                             // thread all'interno della griglia
+  int local_changes = 0; // contatore dei cambiamenti locali : può andare da 0 a
+                         // POINTS_PER_THREAD
 
+  // per ogni punto classifico POINTS_PER_THREAD punti
   for (int i = 0; i < POINTS_PER_THREAD; ++i) {
-    int pointIndex = (global_id * POINTS_PER_THREAD) + i;
-    if (pointIndex >= d_lines)
+    int pointIndex = (global_id * POINTS_PER_THREAD) +
+                     i; // calcolo della posizione del punto da classificare
+                        // all'interno del dataset
+    if (pointIndex >= d_lines) // se sforo l'array non faccio nulla
       return;
-
+    /* questa parte è identica alla versione seriale tranne per l'unroll nella
+     * distanza euclidea */
     int Class = 1;
     float minDist = FLT_MAX;
     float dist;
@@ -564,30 +613,50 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
         Class = j + 1;
       }
     }
-    if (d_classMap[pointIndex] != Class) {
+    if (d_classMap[pointIndex] !=
+        Class) { // aggiorno d_classMap solo quando è necessario
       d_classMap[pointIndex] = Class;
-      local_changes++;
+      local_changes++; // aggiorno i cambiamenti locali
     }
 
     Class -= 1;
-    atomicAdd(&d_pointsPerClass[Class], 1);
+    atomicAdd(&d_pointsPerClass[Class],
+              1); // aggiorno in modo sicuro pointsPerClass[Class] di 1
+    // aggiorno ogni coordinata del centroide con quelle del punto in modo
+    // consistente a tutti gli altri thread
     for (int j = 0; j < d_samples; j++) {
       atomicAdd(&d_auxCentroids[Class * d_samples + j],
                 d_data[pointIndex * d_samples + j]);
     }
   }
-  if (local_changes > 0)
+  if (local_changes > 0) // aggiorno i cambiamenti globali in modo consistente
+                         // solo se effettivamente ho verificato cambiamenti
     atomicAdd(d_changes, local_changes);
 }
 
+/*Funzione che aggiorna le coordinate dei centroidi in d_centroids
+in:  -array di punti per class -> int *d_pointsPerClass
+     -array che accumula le coordinate dei centroidi -> float* d_auxCentroids
+     -array dei centroidi (da aggiornare) -> float* auxCentroids
+Ogni blocco si occupa delle coordinate di un centroide, quindi ogni thread
+all'interno di uno stesso blocco, calcola una coordinata del centroide di cui
+il blocco si occupa*/
 __global__ void GPU_CentroidsUpdate(int *d_pointsPerClass,
                                     float *d_auxCentroids, float *d_centroids) {
-  int global_id = threadIdx.x + blockIdx.x * blockDim.x;
+  int global_id =
+      threadIdx.x +
+      blockIdx.x *
+          blockDim
+              .x; // calcolo della posizione del thread nelle griglia e blocco
   if (global_id > d_samples * d_K)
     return;
-  int numPoints = d_pointsPerClass[blockIdx.x];
+  int numPoints =
+      d_pointsPerClass[blockIdx.x]; // numero di punti per la classe
+                                    // in cui si trova il thread (blockIdx.x)
   if (numPoints == 0)
     return;
 
-  d_centroids[global_id] = d_auxCentroids[global_id] / numPoints;
+  d_centroids[global_id] =
+      d_auxCentroids[global_id] /
+      numPoints; // calcolo delle coordinate aggiornate dei centroidi
 }
