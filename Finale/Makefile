@@ -19,7 +19,7 @@ FLAGS=-O3 -Wall
 LIBS=-lm
 
 # Targets to build
-OBJS=KMEANS_seq KMEANS_omp KMEANS_mpi KMEANS_cuda
+OBJS=KMEANS_seq KMEANS_omp KMEANS_mpi KMEANS_cuda KMEANS_mpi_omp
 
 # Rules. By default show help
 help:
@@ -52,7 +52,8 @@ KMEANS_mpi: KMEANS_mpi.c
 KMEANS_cuda: KMEANS_cuda.cu
 	$(CUDACC) $(DEBUG) $< $(LIBS) -o $@
 
-
+KMEANS_mpi_omp: KMEANS_mpi_omp.c
+	$(MPICC) $(FLAGS) $(DEBUG) $(OMPFLAG) $< $(LIBS) -o $@
 # Remove the target files
 clean:
 	rm -rf $(OBJS)

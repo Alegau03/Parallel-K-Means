@@ -23,4 +23,4 @@
 
 
 - Macro chiamate in MPI - FATTO
-- EFFICENZA COn un processo solo mpi
+- EFFICENZA COn un processo solo mpi - FATTP
