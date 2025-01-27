@@ -23,3 +23,4 @@
 
 
 - Macro chiamate in MPI
+- EFFICENZA COn un processo solo mpi
