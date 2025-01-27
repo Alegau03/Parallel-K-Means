@@ -34,7 +34,7 @@
 // condor_submit job.sub -append 'executable = ./KMEANS_cuda' -append 'arguments = test_files/input100D2.inp 6 3000 1 0.00001 test_files/output100D2_cuda'
 #define UNROLL 2
 #define NUM_WARP_SCHEDULERS 4
-#define POINTS_PER_THREAD 32
+#define POINTS_PER_THREAD 4
 #define REG_PER_THREAD 32 // nvcc -Xcompiler -fopenmp -Xptxas -v  KMEANS_cuda.cu
 #define MAX_BLOCK_DIM 1024
 #define MAXLINE 2000
