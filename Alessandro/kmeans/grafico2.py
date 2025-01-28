@@ -1,50 +1,47 @@
 import matplotlib.pyplot as plt
 
 # Dati forniti
-seriale_data = {
-    "2D": 0.001022,
-    "10D": 0.000345,
-    "20D": 0.011799,
-    "100D": 0.020280,
-    "100D2": 0.256416
+mpi_non_opt_data = {
+    "2D": [0.001697, 0.003303],
+    "10D": [0.001745, 0.004330],
+    "20D": [0.002923, 0.011930],
+    "100D": [0.013726, 0.040489],
+    "100D2": [0.229977, 0.375605]
 }
 
-mpi_data = {
-    "2D": [0.001022, 0.005281, 0.004879, 0.003929, 0.002603, 0.001540, 0.001393, 0.004386],
-    "10D": [0.000345, 0.004960, 0.003966, 0.002012, 0.002065, 0.001562, 0.002045, 0.003563],
-    "20D": [0.011799, 0.013688, 0.008815, 0.007379, 0.008550, 0.006726, 0.007738, 0.010229],
-    "100D": [0.020280, 0.016831, 0.012763, 0.010928, 0.017246, 0.015870, 0.016602, 0.021933],
-    "100D2": [0.256416, 0.142089, 0.106194, 0.083641, 0.114023, 0.081003, 0.106479, 0.146113]
+mpi_opt_data = {
+    "2D": [0.003929, 0.004386],
+    "10D": [0.002012, 0.003563],
+    "20D": [0.007379, 0.010229],
+    "100D": [0.010928, 0.021933],
+    "100D2": [0.083641, 0.146113]
 }
-"""
-"2D":0.001022
-"10D":0.000345
-"20D":0.011799
-"100D":0.020280
-"100D2":0.256416
-"""
-num_processi = [1,2, 3, 4, 5, 6, 7, 8]
 
-# Calcolo dell'efficienza
-# Efficienza è definita come (Tempo seriale / Tempo parallelo) / Numero di processi
-efficiency_data = {}
-for input_type, mpi_times in mpi_data.items():
-    serial_time = seriale_data[input_type]
-    efficiency = [((serial_time / mpi_time) /p ) for mpi_time,p in zip(mpi_times, num_processi)]
-    efficiency_data[input_type] = efficiency
+inputs = ["2D", "10D", "20D", "100D", "100D2"]
 
 # Creazione del grafico
 plt.figure(figsize=(12, 8))
-for input_type, efficiency in efficiency_data.items():
-    plt.plot(num_processi, efficiency, marker='o', label=f"Efficenza - {input_type}")
 
-plt.title("Efficenza del Programma MPI")
-plt.xlabel("Numero di Processi")
-plt.ylabel("Efficenza")
-plt.legend(title="Input")
+# Aggiunta delle linee per MPI non ottimizzato (4 e 8 processi)
+non_opt_4 = [times[0] for times in mpi_non_opt_data.values()]
+non_opt_8 = [times[1] for times in mpi_non_opt_data.values()]
+plt.plot(inputs, non_opt_4, marker='o', label="MPI Non Ottimizzato - 4 Processi")
+plt.plot(inputs, non_opt_8, marker='o', label="MPI Non Ottimizzato - 8 Processi")
+
+# Aggiunta delle linee per MPI ottimizzato (4 e 8 processi)
+opt_4 = [times[0] for times in mpi_opt_data.values()]
+opt_8 = [times[1] for times in mpi_opt_data.values()]
+plt.plot(inputs, opt_4, marker='o', label="MPI Ottimizzato - 4 Processi")
+plt.plot(inputs, opt_8, marker='o', label="MPI Ottimizzato - 8 Processi")
+
+# Dettagli del grafico
+plt.title("Confronto Tempi di Esecuzione: MPI Non Ottimizzato vs Ottimizzato")
+plt.xlabel("Input")
+plt.ylabel("Tempo di Esecuzione (s)")
+plt.legend(title="Configurazione")
 plt.grid(True)
 plt.tight_layout()
 
 # Salvataggio del grafico
-plt.savefig("images/Efficenza.png")
+plt.savefig("images/Grafico1.png")
 plt.show()
