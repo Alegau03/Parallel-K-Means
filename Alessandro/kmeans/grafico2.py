@@ -23,7 +23,7 @@ mpi_data = {
 "100D":0.020280
 "100D2":0.256416
 """
-num_processi = [2, 3, 4, 5, 6, 7, 8]
+num_processi = [1,2, 3, 4, 5, 6, 7, 8]
 
 # Calcolo dell'efficienza
 # Efficienza è definita come (Tempo seriale / Tempo parallelo) / Numero di processi
