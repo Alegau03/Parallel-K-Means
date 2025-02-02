@@ -1,7 +1,7 @@
 /*
  * k-Means clustering algorithm
  *
- * MPI version
+ * MPI + OMP version
  *
  * Parallel computing (Degree in Computer Engineering)
  * 2022/2023
@@ -18,6 +18,7 @@
 #include <float.h>
 #include <math.h>
 #include <mpi.h>
+#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,6 +59,7 @@
     block double end = MPI_Wtime();                                            \
     printf("\n%s time : %lf\n ", #block, end - start);                         \
   }
+
 
 // Macro per controllare gli errori delle chiamate MPI
 #define MPI_call_check(call)                                                   \
@@ -209,7 +211,7 @@ void initCentroids(const float *data, float *centroids, int *centroidPos,
 /*
 Abbiamo utilizzato due versioni di euclideanDistance perchè in questo modo su
 input a due dimensioni abbiamo potuto usare l'unrolling per migliorare le
-prestazioni, in particolare l'unrolling è una tecnica di ottimizzazione che si basa sulla ripetizione di un blocco di codice per ridurre il tempo di esecuzione.
+prestazioni.
 */
 float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
   int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
@@ -221,7 +223,7 @@ float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
   // Cliclo esterno per avanzare nei blocchi
 
   for (i = 0; i < samples; i += blockSize) {
-    // Ciclo interno per calcolare la distanza tra i punti, utilizzando l'unrolling per due dimensioni (samples = 2)
+    // Ciclo interno per calcolare la distanza tra i punti
     for (j = i; j * UNROLL < i + blockSize && j * UNROLL < samples; j++) {
       diff1 += (point[j * UNROLL] - center[j * UNROLL]) *
                (point[j * UNROLL] - center[j * UNROLL]);
@@ -284,11 +286,12 @@ void zeroIntArray(int *array, int size) {
 
 int main(int argc, char *argv[]) {
   /* 0. Initialize MPI */
-  MPI_call_check(MPI_Init(&argc, &argv));
+  int provided;
+  MPI_call_check(MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &provided));
+  MPI_call_check(MPI_Query_thread(&provided));
   int rank;
   MPI_call_check(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
-  MPI_Comm_set_errhandler(MPI_COMM_WORLD,
-                          MPI_ERRORS_RETURN); // Gestore errori personalizzato
+  MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
   // START CLOCK***************************************
   double start, end;
@@ -342,7 +345,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Parametri del Clustering
-  int K = atoi(argv[2]); // Numero di cluster
+  int K = atoi(argv[2]);
   int maxIterations = atoi(argv[3]);
   int minChanges = (int)(lines * atof(argv[4]) / 100.0);
   float maxThreshold = atof(argv[5]);
@@ -373,7 +376,6 @@ int main(int argc, char *argv[]) {
   // Initial centrodis
   srand(0);
   int i;
-  // Inizializza gli indici dei centroidi con valori casuali
   for (i = 0; i < K; i++)
     centroidPos[i] = rand() % lines;
 
@@ -409,10 +411,10 @@ int main(int argc, char *argv[]) {
   float maxDist;
 
   // pointPerClass: Conta il numero di punti assegnati a ciascun cluster.
-  // auxCentroids: Contiene le somme delle coordinate dei punti assegnati a ciascun cluster, utilizzato per calcolare la media (centroide) di ciascun
-  // cluster aggiornandolo. 
-
-  // distCentroids: Memorizza le distanze tra i centroidi precedenti e quelli aggiornati nell'iterazione corrente, calcolare il
+  // auxCentroids: Contiene le somme delle coordinate dei punti assegnati a
+  // ciascun cluster, utilizzato per calcolare la media (centroide) di ciascun
+  // cluster aggiornandolo. distCentroids: Memorizza le distanze tra i centroidi
+  // precedenti e quelli aggiornati nell'iterazione corrente, calcolare il
   // criterio di precisione dell'algoritmo, ovvero se i centroidi si sono
   // spostati sotto una certa soglia (maxThreshold), il K-means può terminare.
   int *pointsPerClass = (int *)malloc((K + 1) * sizeof(int));
@@ -429,13 +431,13 @@ int main(int argc, char *argv[]) {
    *
    */
 
-  int comm_size, *point_distribution, *offset, my_iteration, my_offset;
+  int comm_size, *point_distribution = NULL, *offset = NULL, my_iteration,
+                 my_offset;
   float *glob_auxCentroids;
   int *glob_pointsPerClass;
 
-  glob_pointsPerClass = calloc(K + 1, sizeof(int)); // Conta il numero di punti assegnati a ciascun cluster.
-                                                    
-  glob_auxCentroids = calloc(K * samples, sizeof(float)); // Contiene le somme delle coordinate dei punti assegnati a ciascun cluster.
+  glob_pointsPerClass = calloc(K + 1, sizeof(int));
+  glob_auxCentroids = calloc(K * samples, sizeof(float));
 
   int tmp_lines = lines;
 
@@ -467,7 +469,7 @@ int main(int argc, char *argv[]) {
                                              // (point_distribution[rank]).
   } else { // Altri processi, calcola dinamicamente il numero di punti e
            // l'offset.
-    int remainder = lines % comm_size; 
+    int remainder = lines % comm_size;
     my_iteration = (rank < remainder)
                        ? ((lines - remainder) / comm_size) + 1
                        : ((lines - remainder) /
@@ -480,48 +482,91 @@ int main(int argc, char *argv[]) {
                            my_iteration); // Calcola l'offset iniziale per ogni
                                           // processo.
   }
-  int *localClassMap = calloc(my_iteration, sizeof(int)); // Memorizza la classe assegnata a ciascun punto del dataset.
-  MPI_Request requests[2]; // Array di richieste MPI.
+  int *localClassMap = calloc(
+      my_iteration,
+      sizeof(
+          int)); // Memorizza la classe assegnata a ciascun punto del dataset.
   float reciprocal;
   // Decido quale funzione usare in base all input, 2 dimensioni ->
   // UNROLLEDeuclideanDistance, altrimenti euclideanDistance
   float (*distanceFun)(float *, float *, int) =
-      (samples % 2 == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
-  do {
-    it++;
+      (samples % UNROLL == 0) ? UNROLLEDeuclideanDistance : euclideanDistance;
 
-    // 1. Calculate the distance from each point to the centroid
-    // Assign each point to the nearest centroid.
-    // Changes incrementa se la classe del punto cambia rispetto all'iterazione
-    // precedente.
+  do {
+
+    /*
+      1. Calculate the distance from each point to the centroid
+      Assign each point to the nearest centroid.
+      Changes incrementa se la classe del punto cambia rispetto all'iterazione
+      precedente.
+
+
+      In questo parallel for calcoliamo quale sia il centroide più vicino per
+      ogni punto e aggiorniamo due informazioni: -local_changes: se la classe
+      del punto è cambiata rispetto all’iterazione precedente.
+        -pointsPerClass[]: quanti punti sono stati assegnati a ciascun cluster.
+
+      Li inseriamo in clausola reduction(+:local_changes, pointsPerClass[:K])
+      per evitare le race condition e sommare correttamente i contributi di
+      tutti i thread. E' fondamentale la clausola di riduzione su pointsPerClass
+      per evitare che i thread si sovrascrivano a vicenda.
+
+    */
+
+    it++;
     changes = 0;
-    for (int i = my_offset, it_2 = 0; i < my_offset + my_iteration; i++) {
-      class = 1;
-      minDist = FLT_MAX;
+    int i, j; // Da dichiarare fuori per evitare errori di compilazione
+    // Variabile locale in riduzione per conteggiare quanti punti cambiano
+    // cluster
+    int local_changes = 0;
+
+// Parallel for con riduzione su local_changes e su pointsPerClass
+#pragma omp parallel for private(j)                                            \
+    reduction(+ : local_changes, pointsPerClass[ : K]) schedule(static)
+    // Itera sui punti assegnati a questo processo
+    for (i = my_offset; i < my_offset + my_iteration; i++) {
+      // Indice locale (per accedere a localClassMap)
+      int idx = i - my_offset;
+
+      // Calcolo del cluster più vicino
+      float minDist = FLT_MAX;
+      int newClass = 1; // inizializziamo a 1 o a qualunque cluster
       for (j = 0; j < K; j++) {
-        dist =
+        float dist =
             distanceFun(&data[i * samples], &centroids[j * samples], samples);
-        // Se la distanza è minore della distanza minima, aggiorna la distanza
         if (dist < minDist) {
           minDist = dist;
-          class = j + 1;
+          newClass = j + 1; // cluster j corrisponde a j+1
         }
       }
-      if (localClassMap[it_2] != class) {
-        changes++;
+
+      // Verifica se la classe è cambiata rispetto alla vecchia
+      if (localClassMap[idx] != newClass) {
+        local_changes++;
       }
-      localClassMap[it_2++] = class; // Assegna la classe al punto, per il controllo nella prossima iterazione.
-      pointsPerClass[class - 1] = pointsPerClass[class - 1] + 1; // Incrementa il contatore dei punti assegnati al cluster.
+
+      // Aggiorna la classe del punto
+      localClassMap[idx] = newClass;
+
+      // Conta un punto in più per il cluster 'newClass'
+      pointsPerClass[newClass - 1]++;
     }
-    pointsPerClass[K] = changes; // Numero di cambiamenti di classe, per la condizione di terminazione.
-    zeroIntArray(glob_pointsPerClass, K + 1); // Inizializza a 0 il contatore globale dei punti assegnati a ciascun cluster.
+
+    // Al termine del for parallelo, local_changes è stato ridotto: aggiorniamo
+    // changes
+    changes = local_changes;
+
+    // Aggiorniamo pointsPerClass[K] con il numero totale di punti che hanno
+    // cambiato classe
+    pointsPerClass[K] = changes;
+    zeroIntArray(glob_pointsPerClass, K + 1);
 
     // Somma globale non bloccante sui contatori locali (pointsPerClass e
-    // auxCentroids), questa somma globale è necessaria per calcolare i nuovi centroidi.
-    MPI_call_check(MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1,
-                                  MPI_INT, MPI_SUM, MPI_COMM_WORLD,
-                                  &requests[0]));
+    // auxCentroids).
 
+    MPI_call_check(MPI_Allreduce(
+        pointsPerClass, glob_pointsPerClass, K + 1, MPI_INT, MPI_SUM,
+        MPI_COMM_WORLD)); // Riduzione MPI non bloccante
     zeroFloatMatriz(auxCentroids, K,
                     samples); // Inizializza la matrice auxCentroids a 0.
     zeroFloatMatriz(glob_auxCentroids, K,
@@ -537,35 +582,64 @@ int main(int argc, char *argv[]) {
      Le somme parziali calcolate da ciascun processo verranno combinate
      globalmente tramite una riduzione (MPI_Iallreduce), permettendo
      l'aggiornamento dei centroidi.
-    */
-    for (int i = my_offset, it_2 = 0; i < my_offset + my_iteration; i++) {
-      class = localClassMap[it_2++];
+
+
+     Esempio di azzeramento prima del parallel for (fuori da esso):
+     memset(pointsPerClass, 0, sizeof(int)*K);
+     memset(auxCentroids, 0, sizeof(float)*K*samples);
+
+     Qui aggiorniamo di nuovo pointsPerClass[] (se vogliamo contare esattamente
+     quanti punti totali sono in ogni cluster nella seconda passata) e
+     auxCentroids[] (vettore di somme delle coordinate, che poi sarà diviso per
+     pointsPerClass[c] per ottenere i nuovi centroidi). Anche qui è fondamentale
+     la clausola di riduzione su pointsPerClass e su auxCentroids per evitare
+     che i thread si sovrascrivano a vicenda.
+*/
+
+#pragma omp parallel for private(j)                                            \
+    reduction(+ : pointsPerClass[ : K], auxCentroids[ : K * samples])          \
+    schedule(static)
+    for (i = my_offset; i < my_offset + my_iteration; i++) {
+      // Calcolo l'indice locale per accedere a localClassMap
+      int local_idx = i - my_offset;
+      // Leggo la classe assegnata a questo punto
+      int c = localClassMap[local_idx];
+      // Esempio: localClassMap contiene valori 1..K
+      // Per accedere in array (0..K-1) usiamo (c-1).
+
+      // Incremento il conteggio di punti appartenenti al cluster c
+      pointsPerClass[c - 1]++;
+
+      // Aggiungo le coordinate del punto i alle somme parziali di auxCentroids
       for (j = 0; j < samples; j++) {
-        auxCentroids[(class - 1) * samples + j] += data[i * samples + j];
+        auxCentroids[(c - 1) * samples + j] += data[i * samples + j];
       }
     }
+
+    // Al termine del for parallelo, le riduzioni sommano i risultati di ogni
+    // thread in pointsPerClass[] e auxCentroids[].
+
     // Somma globale non bloccante sui contatori locali (pointsPerClass e
     // auxCentroids).
-    MPI_call_check(MPI_Iallreduce(auxCentroids, glob_auxCentroids, K * samples,
-                                  MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD,
-                                  &requests[1]));
-    // Aspetta che entrambe le riduzioni siano completate prima di procedere.
-    MPI_call_check(MPI_Waitall(2, requests, MPI_STATUSES_IGNORE));
+    MPI_call_check(MPI_Allreduce(auxCentroids, glob_auxCentroids, K * samples,
+                                 MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD));
 
-
-   // Calcola i nuovi centroidi dividendo le somme parziali per il numero di punti assegnati a ciascun cluster.
+    // Divide ogni somma globale per il numero di punti nel cluster
+    // I centroidi vengono aggiornati copiando i nuovi valori.
+    // Calcola la distanza massima tra i centroidi precedenti e quelli
+    // aggiornati.
     for (i = 0; i < K; i++) {
-      reciprocal = 1.0f / glob_pointsPerClass[i]; // Calcola il reciproco del numero di punti assegnati al cluster.
+      reciprocal = 1.0f / glob_pointsPerClass[i];
       for (j = 0; j < samples; j++) {
-        glob_auxCentroids[i * samples + j] *= reciprocal; // Calcola la media dei punti assegnati al cluster.
+        glob_auxCentroids[i * samples + j] *= reciprocal;
       }
     }
-    changes = glob_pointsPerClass[K]; // Numero di cambiamenti di classe, per la condizione di terminazione.
+    changes = glob_pointsPerClass[K];
     zeroIntArray(pointsPerClass, K + 1);
 
     memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float)));
+
     maxDist = FLT_MIN;
-    // Calcola la distanza tra i centroidi precedenti e quelli aggiornati nell'iterazione corrente.
     for (i = 0; i < K; i++) {
       distCentroids[i] = distanceFun(&centroids[i * samples],
                                      &auxCentroids[i * samples], samples);
@@ -578,6 +652,10 @@ int main(int argc, char *argv[]) {
     // Condizione di terminazione
   } while ((changes > minChanges) && (it < maxIterations) &&
            (sqrt(maxDist) > maxThreshold));
+  // Terminiamo se:
+  // 1) changes <= minChanges (pochi cambiamenti di cluster)
+  // 2) raggiunto il maxIterations
+  // 3) i centroidi si sono spostati meno di maxThreshold
 
   // Raccoglie tutte le classificazioni locali nei processi e le combina nel
   // processo con rank 0.
@@ -596,8 +674,9 @@ int main(int argc, char *argv[]) {
   // END CLOCK*****************************************
   end = MPI_Wtime();
   float comp_time = end - start;
-  float max_time;
-  MPI_call_check(MPI_Reduce(&comp_time, &max_time, 1, MPI_FLOAT, MPI_MAX, 0,
+  float max_comp_time;
+  MPI_call_check(MPI_Reduce(&comp_time, &max_comp_time, 1, MPI_FLOAT, MPI_MAX,
+                            0,
                             MPI_COMM_WORLD)); // Calcola il tempo di esecuzione
                                               // massimo tra tutti i processi.
   if (rank == 0) {
@@ -631,6 +710,8 @@ int main(int argc, char *argv[]) {
   }
   // Free memory
   free(data);
+  free(point_distribution);
+  free(offset);
   free(classMap);
   free(centroidPos);
   free(localClassMap);
@@ -647,3 +728,64 @@ int main(int argc, char *argv[]) {
   MPI_Finalize();
   return 0;
 }
+
+/*
+    NOTE FINALI:
+    I cambiamenti che abbiamo fatto e perché ora funziona
+Inserimento di variabili in clausola reduction
+
+Prima, nel tuo codice, facevi changes++ o pointsPerClass[...]++ dentro un for
+parallelo senza protezioni. Ciò causava race condition, perché più thread
+modificavano contemporaneamente la stessa variabile/struttura. Adesso, con
+reduction(+:local_changes, pointsPerClass[:K]), ogni thread mantiene un
+accumulatore locale. Alla fine del for, OpenMP somma i risultati parziali di
+ogni thread e li mette nella variabile globale. Eliminazione della doppia
+dichiarazione di variabili (ad esempio int i, j;)
+
+Prima c’era un errore di compilazione perché int i, j; veniva dichiarato due
+volte nello stesso scope. Ora dichiarazioni e utilizzo sono corretti.
+Separazione (o unione) logica corretta dei cicli
+
+Prima c’erano due for in cui pointsPerClass veniva incrementato due volte nella
+stessa iterazione di K-Means, senza essere azzerato tra un for e l’altro. Questo
+gonfiava i conteggi. Adesso, abbiamo reso chiaro che nel primo for calcoliamo i
+cambi di cluster e nel secondo for accumuliamo le coordinate nei centroidi
+(oltre a contare i punti). Viene anche effettuato un zeroIntArray() o
+zeroFloatMatriz() al momento giusto. Gestione di changes in una variabile locale
+ridotta (local_changes)
+
+Prima facevi changes++ direttamente in un for parallelo. Adesso lo facciamo in
+local_changes e poi lo riduciamo correttamente. Così otteniamo il totale globale
+(in quell’MPI-process) dei cambi di cluster, e infine lo memorizziamo in
+changes.
+
+COSA SBAGLIAVAMO?
+Prima:
+
+Usavo changes (o altre variabili come pointsPerClass) in un for parallelo OpenMP
+senza riduzione o senza #pragma omp atomic. In un ambiente multithread, questo
+genera race condition (i thread si sovrascrivono a vicenda), e il risultato
+finale di changes e pointsPerClass era non deterministico.
+
+Facevo l’aggiornamento dei conteggi (pointsPerClass) in due fasi, talvolta senza
+azzerare prima di rientrare nel for, e aggiungevi di nuovo i valori.
+
+
+Adesso:
+
+Aggiunta di reduction(+: ...) su changes e su pointsPerClass/auxCentroids.
+  In tal modo, ogni thread ha il proprio accumulatore e alla fine del for i
+risultati vengono sommati correttamente.
+
+
+Chiarezza nei passaggi:
+Assegniamo i cluster, calcoliamo changes.
+Accumulo coordinate dei punti per i centroidi.
+Riduzione MPI dei risultati su tutti i processi.
+Calcolo dei nuovi centroidi e controllo dei criteri di arresto.
+In sintesi, la chiave per far funzionare correttamente la versione OpenMP è
+proteggere le scritture sulle variabili globali condivise nel for parallelo con
+meccanismi di riduzione o di atomicità, ed evitare di incrementare due volte la
+stessa struttura senza azzerarla (o usarne due diverse in modo coerente).
+
+*/

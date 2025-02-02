@@ -376,6 +376,7 @@ In particolare:
     for (int i = 0; i < lines; i++) {
       class = 1;
       float minDist = FLT_MAX;
+      // Calcola la distanza tra il punto i-esimo e tutti i centroidi
       for (int j = 0; j < K; j++) {
         float dist =
             distanceFun(&data[i * samples], &centroids[j * samples], samples);
@@ -389,10 +390,12 @@ In particolare:
       }
       classMap[i] = class;
     }
-    zeroFloatMatriz(auxCentroids, K, samples);
+    zeroFloatMatriz(auxCentroids, K, samples); // Azzera le somme parziali
+    // Calcola le somme delle coordinate dei punti assegnati a ciascun cluster
     for (int i = 0; i < lines; i++) {
       class = classMap[i] - 1;
-      pointsPerClass[class]++;
+      pointsPerClass[class]++; // Incrementa il contatore dei punti assegnati al cluster
+      // Aggiorna le somme parziali
       for (int j = 0; j < samples; j++) {
         auxCentroids[class * samples + j] += data[i * samples + j];
       }
@@ -408,6 +411,7 @@ In particolare:
 - La variabile i è dichiarata privata per garantire che ogni thread abbia la propria copia locale.
 */  
 #pragma omp parallel for schedule(static)
+// Calcola i nuovi centroidi dividendo le somme parziali per il numero di punti assegnati a ciascun cluster.
     for (int i = 0; i < K; i++) {
       for (int j = 0; j < samples; j++) {
         if (pointsPerClass[i] > 0) {
@@ -429,10 +433,11 @@ In particolare:
 - La variabile i è dichiarata privata per garantire che ogni thread abbia la propria copia locale.
 */ 
 #pragma omp parallel for reduction(max : maxDist) schedule(guided)
+    // Calcola la distanza tra i centroidi precedenti e quelli aggiornati nell'iterazione corrente
     for (int i = 0; i < K; i++) {
       distCentroids[i] = distanceFun(&centroids[i * samples],
                                      &auxCentroids[i * samples], samples);
-      maxDist = MAX(maxDist, distCentroids[i]);
+      maxDist = MAX(maxDist, distCentroids[i]); // Calcola la distanza massima tra i centroidi
     }
 
     memcpy(centroids, auxCentroids, (K * samples * sizeof(float)));

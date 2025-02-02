@@ -413,7 +413,9 @@ int main(int argc, char *argv[]) {
   // pointPerClass: Conta il numero di punti assegnati a ciascun cluster.
   // auxCentroids: Contiene le somme delle coordinate dei punti assegnati a
   // ciascun cluster, utilizzato per calcolare la media (centroide) di ciascun
-  // cluster aggiornandolo. distCentroids: Memorizza le distanze tra i centroidi
+  // cluster aggiornandolo. 
+  
+  //distCentroids: Memorizza le distanze tra i centroidi
   // precedenti e quelli aggiornati nell'iterazione corrente, calcolare il
   // criterio di precisione dell'algoritmo, ovvero se i centroidi si sono
   // spostati sotto una certa soglia (maxThreshold), il K-means può terminare.
@@ -436,8 +438,12 @@ int main(int argc, char *argv[]) {
   float *glob_auxCentroids;
   int *glob_pointsPerClass;
 
-  glob_pointsPerClass = calloc(K + 1, sizeof(int));
-  glob_auxCentroids = calloc(K * samples, sizeof(float));
+  glob_pointsPerClass = calloc(K + 1, sizeof(int)); // Conta il numero di punti
+                                                    // assegnati a ciascun cluster.
+  glob_auxCentroids = calloc(K * samples, sizeof(float)); // Contiene le somme
+                                                         // delle coordinate dei
+                                                         // punti assegnati a
+                                                         // ciascun cluster.
 
   int tmp_lines = lines;
 
@@ -502,8 +508,8 @@ int main(int argc, char *argv[]) {
 
 
       In questo parallel for calcoliamo quale sia il centroide più vicino per
-      ogni punto e aggiorniamo due informazioni: -local_changes: se la classe
-      del punto è cambiata rispetto all’iterazione precedente.
+      ogni punto e aggiorniamo due informazioni: 
+        -local_changes: se la classe del punto è cambiata rispetto all’iterazione precedente.
         -pointsPerClass[]: quanti punti sono stati assegnati a ciascun cluster.
 
       Li inseriamo in clausola reduction(+:local_changes, pointsPerClass[:K])
@@ -517,10 +523,9 @@ int main(int argc, char *argv[]) {
     changes = 0;
     int i, j; // Da dichiarare fuori per evitare errori di compilazione
     // Variabile locale in riduzione per conteggiare quanti punti cambiano
-    // cluster
     int local_changes = 0;
 
-// Parallel for con riduzione su local_changes e su pointsPerClass
+// Parallel for con riduzione su local_changes e su pointsPerClass, utilizzo j come variabile privata perchè è già dichiarata fuori dal ciclo
 #pragma omp parallel for private(j)                                            \
     reduction(+ : local_changes, pointsPerClass[ : K]) schedule(static)
     // Itera sui punti assegnati a questo processo
@@ -595,7 +600,7 @@ int main(int argc, char *argv[]) {
      la clausola di riduzione su pointsPerClass e su auxCentroids per evitare
      che i thread si sovrascrivano a vicenda.
 */
-
+// Parallel for con riduzione su pointsPerClass e su auxCentroids, utilizzo j come variabile privata perchè è già dichiarata fuori dal ciclo, serve per 
 #pragma omp parallel for private(j)                                            \
     reduction(+ : pointsPerClass[ : K], auxCentroids[ : K * samples])          \
     schedule(static)
@@ -628,6 +633,7 @@ int main(int argc, char *argv[]) {
     // I centroidi vengono aggiornati copiando i nuovi valori.
     // Calcola la distanza massima tra i centroidi precedenti e quelli
     // aggiornati.
+    // Aggiorna i centroidi precedenti con i nuovi valori.
     for (i = 0; i < K; i++) {
       reciprocal = 1.0f / glob_pointsPerClass[i];
       for (j = 0; j < samples; j++) {

@@ -209,7 +209,7 @@ void initCentroids(const float *data, float *centroids, int *centroidPos,
 /*
 Abbiamo utilizzato due versioni di euclideanDistance perchè in questo modo su
 input a due dimensioni abbiamo potuto usare l'unrolling per migliorare le
-prestazioni, in particolare l'unrolling è una tecnica di ottimizzazione che si basa sulla ripetizione di un blocco di codice per ridurre il tempo di esecuzione.
+prestazioni.
 */
 float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
   int blockSize = 32; // Dimensione del blocco ottimale per la cache L1
@@ -221,7 +221,7 @@ float UNROLLEDeuclideanDistance(float *point, float *center, int samples) {
   // Cliclo esterno per avanzare nei blocchi
 
   for (i = 0; i < samples; i += blockSize) {
-    // Ciclo interno per calcolare la distanza tra i punti, utilizzando l'unrolling per due dimensioni (samples = 2)
+    // Ciclo interno per calcolare la distanza tra i punti
     for (j = i; j * UNROLL < i + blockSize && j * UNROLL < samples; j++) {
       diff1 += (point[j * UNROLL] - center[j * UNROLL]) *
                (point[j * UNROLL] - center[j * UNROLL]);
@@ -342,7 +342,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Parametri del Clustering
-  int K = atoi(argv[2]); // Numero di cluster
+  int K = atoi(argv[2]);
   int maxIterations = atoi(argv[3]);
   int minChanges = (int)(lines * atof(argv[4]) / 100.0);
   float maxThreshold = atof(argv[5]);
@@ -373,7 +373,6 @@ int main(int argc, char *argv[]) {
   // Initial centrodis
   srand(0);
   int i;
-  // Inizializza gli indici dei centroidi con valori casuali
   for (i = 0; i < K; i++)
     centroidPos[i] = rand() % lines;
 
@@ -409,10 +408,10 @@ int main(int argc, char *argv[]) {
   float maxDist;
 
   // pointPerClass: Conta il numero di punti assegnati a ciascun cluster.
-  // auxCentroids: Contiene le somme delle coordinate dei punti assegnati a ciascun cluster, utilizzato per calcolare la media (centroide) di ciascun
-  // cluster aggiornandolo. 
-
-  // distCentroids: Memorizza le distanze tra i centroidi precedenti e quelli aggiornati nell'iterazione corrente, calcolare il
+  // auxCentroids: Contiene le somme delle coordinate dei punti assegnati a
+  // ciascun cluster, utilizzato per calcolare la media (centroide) di ciascun
+  // cluster aggiornandolo. distCentroids: Memorizza le distanze tra i centroidi
+  // precedenti e quelli aggiornati nell'iterazione corrente, calcolare il
   // criterio di precisione dell'algoritmo, ovvero se i centroidi si sono
   // spostati sotto una certa soglia (maxThreshold), il K-means può terminare.
   int *pointsPerClass = (int *)malloc((K + 1) * sizeof(int));
@@ -433,9 +432,8 @@ int main(int argc, char *argv[]) {
   float *glob_auxCentroids;
   int *glob_pointsPerClass;
 
-  glob_pointsPerClass = calloc(K + 1, sizeof(int)); // Conta il numero di punti assegnati a ciascun cluster.
-                                                    
-  glob_auxCentroids = calloc(K * samples, sizeof(float)); // Contiene le somme delle coordinate dei punti assegnati a ciascun cluster.
+  glob_pointsPerClass = calloc(K + 1, sizeof(int));
+  glob_auxCentroids = calloc(K * samples, sizeof(float));
 
   int tmp_lines = lines;
 
@@ -467,7 +465,7 @@ int main(int argc, char *argv[]) {
                                              // (point_distribution[rank]).
   } else { // Altri processi, calcola dinamicamente il numero di punti e
            // l'offset.
-    int remainder = lines % comm_size; 
+    int remainder = lines % comm_size;
     my_iteration = (rank < remainder)
                        ? ((lines - remainder) / comm_size) + 1
                        : ((lines - remainder) /
@@ -480,7 +478,10 @@ int main(int argc, char *argv[]) {
                            my_iteration); // Calcola l'offset iniziale per ogni
                                           // processo.
   }
-  int *localClassMap = calloc(my_iteration, sizeof(int)); // Memorizza la classe assegnata a ciascun punto del dataset.
+  int *localClassMap = calloc(
+      my_iteration,
+      sizeof(
+          int)); // Memorizza la classe assegnata a ciascun punto del dataset.
   MPI_Request requests[2]; // Array di richieste MPI.
   float reciprocal;
   // Decido quale funzione usare in base all input, 2 dimensioni ->
@@ -501,7 +502,7 @@ int main(int argc, char *argv[]) {
       for (j = 0; j < K; j++) {
         dist =
             distanceFun(&data[i * samples], &centroids[j * samples], samples);
-        // Se la distanza è minore della distanza minima, aggiorna la distanza
+
         if (dist < minDist) {
           minDist = dist;
           class = j + 1;
@@ -510,14 +511,14 @@ int main(int argc, char *argv[]) {
       if (localClassMap[it_2] != class) {
         changes++;
       }
-      localClassMap[it_2++] = class; // Assegna la classe al punto, per il controllo nella prossima iterazione.
-      pointsPerClass[class - 1] = pointsPerClass[class - 1] + 1; // Incrementa il contatore dei punti assegnati al cluster.
+      localClassMap[it_2++] = class;
+      pointsPerClass[class - 1] = pointsPerClass[class - 1] + 1;
     }
-    pointsPerClass[K] = changes; // Numero di cambiamenti di classe, per la condizione di terminazione.
-    zeroIntArray(glob_pointsPerClass, K + 1); // Inizializza a 0 il contatore globale dei punti assegnati a ciascun cluster.
+    pointsPerClass[K] = changes;
+    zeroIntArray(glob_pointsPerClass, K + 1);
 
     // Somma globale non bloccante sui contatori locali (pointsPerClass e
-    // auxCentroids), questa somma globale è necessaria per calcolare i nuovi centroidi.
+    // auxCentroids).
     MPI_call_check(MPI_Iallreduce(pointsPerClass, glob_pointsPerClass, K + 1,
                                   MPI_INT, MPI_SUM, MPI_COMM_WORLD,
                                   &requests[0]));
@@ -552,20 +553,22 @@ int main(int argc, char *argv[]) {
     // Aspetta che entrambe le riduzioni siano completate prima di procedere.
     MPI_call_check(MPI_Waitall(2, requests, MPI_STATUSES_IGNORE));
 
+    /*
+      Divide ogni somma globale per il numero di punti nel cluster
+      I centroidi vengono aggiornati copiando i nuovi valori.
+    */
 
-   // Calcola i nuovi centroidi dividendo le somme parziali per il numero di punti assegnati a ciascun cluster.
     for (i = 0; i < K; i++) {
-      reciprocal = 1.0f / glob_pointsPerClass[i]; // Calcola il reciproco del numero di punti assegnati al cluster.
+      reciprocal = 1.0f / glob_pointsPerClass[i];
       for (j = 0; j < samples; j++) {
-        glob_auxCentroids[i * samples + j] *= reciprocal; // Calcola la media dei punti assegnati al cluster.
+        glob_auxCentroids[i * samples + j] *= reciprocal;
       }
     }
-    changes = glob_pointsPerClass[K]; // Numero di cambiamenti di classe, per la condizione di terminazione.
+    changes = glob_pointsPerClass[K];
     zeroIntArray(pointsPerClass, K + 1);
 
     memcpy(centroids, glob_auxCentroids, (K * samples * sizeof(float)));
     maxDist = FLT_MIN;
-    // Calcola la distanza tra i centroidi precedenti e quelli aggiornati nell'iterazione corrente.
     for (i = 0; i < K; i++) {
       distCentroids[i] = distanceFun(&centroids[i * samples],
                                      &auxCentroids[i * samples], samples);
