@@ -1,4 +1,13 @@
 # K-Means Clustering Parallel Implementation
+## Report del progetto
+Nella repository è presente un report completo sulle implementazioni dell'algoritmo di clustering K-Means.  
+Sono state scritte 4 versioni:
+- MPI
+- OpenMP
+- MPI + OpenMP
+- CUDA
+
+## Script di Esecuzione
 
 Questo script compila e esegue diverse implementazioni parallele e sequenziali dell'algoritmo K-Means per il clustering. Supporta implementazioni in **MPI**, **OpenMP**, **MPI+OpenMP**, e una versione sequenziale.
 
