@@ -14,7 +14,6 @@
  * This work is licensed under a Creative Commons Attribution-ShareAlike 4.0
  * International License. https://creativecommons.org/licenses/by-sa/4.0/
  */
-#include <__clang_cuda_builtin_vars.h>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -74,6 +73,10 @@ __global__ void GPU_CentroidsUpdate(int *d_pointsPerClass,
                                     float *d_auxCentroids, float *d_centroids);
 void OptimalBlockGridDims(int numberOfThreads, int *optBlockDim,
                           int *optGridDim);
+
+__global__ void GPU_PointClassification(float *d_centroids, float *d_data,
+                                        int *d_classMap, int d_offset,
+                                        int *d_changes);
 /*
 Function showFileError: It displays the corresponding error during file
 reading.
@@ -353,11 +356,10 @@ int main(int argc, char *argv[]) {
   int gridSize = 0, blockSize = 0;
   int *d_pointsPerClass, *d_changes, *d_classMap;
   float *d_centroids, *d_auxCentroids, *d_data;
-
-  OptimalBlockGridDims(
-      ceil(lines / POINTS_PER_THREAD), &blockSize,
-      &gridSize); // calcolo della dimensione ottimale di griglia e blocco in
-                  // base al numero di punti da classficare
+  cudaDeviceProp p;
+  cudaGetDeviceProperties(&p, 0);
+  gridSize = p.multiProcessorCount * p.maxBlocksPerMultiProcessor;
+  blockSize = samples;
 
   /*Allocazione di centroid, data, auxCentroids, pointsPerClass, changes e
    * classMap in memoria globale del dispositivo*/
@@ -398,17 +400,29 @@ int main(int argc, char *argv[]) {
     /* Lancio del kernel  in cui si classificano i punti in d_data e si
      * accumulano coordinate in auxCentroids, e numero di punti per classe in
      * pointsPerClass*/
-    GPU_ClassAssignment<<<gridSize, blockSize>>>(
-        d_pointsPerClass, d_auxCentroids, d_changes, d_centroids, d_data,
-        d_classMap);
-    cudaDeviceSynchronize(); // attende la fine del kernel da parte di ogni
-                             // thread
-    CHECK_CUDA_LAST();
+    int indx = 0;
+    GPU_PointClassification<<<gridSize, blockSize, K>>>(
+        d_centroids, d_data, d_classMap, indx, d_changes);
+    do {
+      indx += gridSize;
+      GPU_PointClassification<<<gridSize, blockSize, K>>>(
+          d_centroids, d_data, d_classMap, indx, d_changes);
+    } while (indx <= lines);
+    cudaDeviceSynchronize();
+    cudaMemcpy(&changes, d_changes, sizeof(int), cudaMemcpyDeviceToHost);
 
-    /*Copia dei cambiament i da device ad host dopo la sincronizzazione*/
-    CHECK_CUDA_CALL(
-        cudaMemcpy(&changes, d_changes, sizeof(int), cudaMemcpyDeviceToHost));
+    for (int i = 0; i < lines; i++) {
+      int Class = ClassMap[i] - 1;
+      pointsPerClass[Class]++;
+      for (int j = 0; j < samples; j++) {
+        auxCentroids[Class * samples + j] += data[i * samples + j];
+      }
+    }
 
+    cudaMemcpy(d_auxCentroids, auxCentroids, K * samples * sizeof(float),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(d_pointsPerClass, pointsPerClass, K * sizeof(int),
+               cudaMemcpyHostToDevice);
     /*Aggiornamento delle coordinate in d_centroids*/
     GPU_CentroidsUpdate<<<K, samples>>>(d_pointsPerClass, d_auxCentroids,
                                         d_centroids);
@@ -422,7 +436,7 @@ int main(int argc, char *argv[]) {
 
     /* calcolo della distanza di aggiornamento maggiore*/
     maxDist = FLT_MIN;
-    for (i = 0; i < K; i++) {
+    for (int i = 0; i < K; i++) {
       distCentroids[i] = euclideanDistance(&centroids[i * samples],
                                            &auxCentroids[i * samples], samples);
       if (distCentroids[i] > maxDist) {
@@ -445,9 +459,6 @@ int main(int argc, char *argv[]) {
   } while ((changes > minChanges) && (it < maxIterations) &&
            (maxDist > maxThreshold * maxThreshold));
 
-  // copia finale della mappa delle classi sul device all'host
-  CHECK_CUDA_CALL(cudaMemcpy(ClassMap, d_classMap, lines * sizeof(int),
-                             cudaMemcpyDeviceToHost));
   /*
    *
    * STOP HERE: DO NOT CHANGE THE CODE BELOW THIS POINT
@@ -636,8 +647,9 @@ __global__ void GPU_ClassAssignment(int *d_pointsPerClass,
 }
 
 __global__ void GPU_PointClassification(float *d_centroids, float *d_data,
-                                        int *d_classMap) {
-  int global_id = threadIdx.x + blockDim.x * blockIdx.x;
+                                        int *d_classMap, int d_offset,
+                                        int *d_changes) {
+  int global_id = d_offset + threadIdx.x;
   if (threadIdx.x >= d_samples)
     return;
   extern __shared__ float distance_vector[];
@@ -649,11 +661,20 @@ __global__ void GPU_PointClassification(float *d_centroids, float *d_data,
     atomicAdd(&distance_vector[i], partial_distance);
   }
   __syncthreads();
-  int Class;
-  if (threadIdx.x > floor(d_K / 2))
+  if (threadIdx.x != 0) {
     return;
-  for (int i = 0; i <= (d_K - threadIdx.x) / 2; i++) {
-    //....
+  }
+  int Class = 0;
+  float dist = MAXFLOAT;
+  for (int i = 0; i < d_K; i++) {
+    if (dist > distance_vector[i]) {
+      Class = i + 1;
+      dist = distance_vector[i];
+    }
+  }
+  if (d_classMap[d_offset + blockIdx.x] != Class) {
+    d_classMap[d_offset + blockIdx.x] = Class;
+    atomicAdd(d_changes, 1);
   }
 }
 
